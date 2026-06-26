@@ -36,6 +36,15 @@ jobs:
             -project Spacey.xcodeproj \
             -scheme Spacey \
             -destination 'platform=macOS' \
-            -resultBundlePath TestResults \
+            -enableCodeCoverage YES \
+            -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             clean build test
+
+      - name: Code coverage summary
+        if: always()
+        run: |
+          echo '### Code coverage' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          xcrun xccov view --report --only-targets TestResults.xcresult >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

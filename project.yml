@@ -56,5 +56,8 @@ schemes:
       config: Debug
     test:
       config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - Spacey
       targets:
         - SpaceyTests
