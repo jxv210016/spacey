@@ -69,6 +69,11 @@ private struct SpaceRow: View {
     let space: Space
     @ObservedObject var names: SpaceNamesStore
 
+    /// Local edit buffer so typing does not write to disk / republish on every
+    /// keystroke. Committed on submit and when focus leaves the field.
+    @State private var draftLabel: String = ""
+    @FocusState private var isEditing: Bool
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: space.isCurrent ? "largecircle.fill.circle" : "circle")
@@ -78,8 +83,13 @@ private struct SpaceRow: View {
             colorPicker
             iconPicker
 
-            TextField("Space \(space.indexOnDisplay)", text: labelBinding)
+            TextField("Space \(space.indexOnDisplay)", text: $draftLabel)
                 .textFieldStyle(.roundedBorder)
+                .focused($isEditing)
+                .onSubmit { commitLabel() }
+                .onChange(of: isEditing) { _, editing in
+                    if !editing { commitLabel() }
+                }
 
             if name != nil {
                 Button {
@@ -91,6 +101,11 @@ private struct SpaceRow: View {
                 .help("Clear name")
             }
         }
+        .onAppear { syncDraft() }
+        // Keep the buffer in sync with external changes (e.g. Clear) while not typing.
+        .onChange(of: name?.label) { _, _ in
+            if !isEditing { syncDraft() }
+        }
     }
 
     private var name: SpaceName? {
@@ -101,11 +116,12 @@ private struct SpaceRow: View {
         name?.colorHex.flatMap(Color.init(hex:)) ?? .secondary
     }
 
-    private var labelBinding: Binding<String> {
-        Binding(
-            get: { names.name(for: space.identity)?.label ?? "" },
-            set: { names.setLabel($0, for: space.identity) }
-        )
+    private func syncDraft() {
+        draftLabel = name?.label ?? ""
+    }
+
+    private func commitLabel() {
+        names.setLabel(draftLabel, for: space.identity)
     }
 
     private var colorPicker: some View {
