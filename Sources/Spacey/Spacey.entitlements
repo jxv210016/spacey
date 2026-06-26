@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Not sandboxed: a Spaces manager needs Accessibility + Apple Events, which
+	     the App Sandbox blocks. This rules out the Mac App Store (by design) but
+	     is fully compatible with Developer ID notarization. -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	<!-- Allow controlling System Events to drive the built-in Mission Control shortcuts. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+</dict>
+</plist>

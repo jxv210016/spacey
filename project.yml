@@ -1,0 +1,60 @@
+# XcodeGen project spec. Regenerate the .xcodeproj with: xcodegen generate
+# The .xcodeproj is NOT committed — generate it from this file (see README).
+name: Spacey
+options:
+  bundleIdPrefix: com.getspacey
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    # Private SkyLight symbols are resolved at runtime via dlsym, so nothing to link here.
+
+targets:
+  Spacey:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/Spacey
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.getspacey.Spacey
+        PRODUCT_NAME: Spacey
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Sources/Spacey/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Sources/Spacey/Spacey.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        COMBINE_HIDPI_IMAGES: YES
+
+  SpaceyTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/SpaceyTests
+    dependencies:
+      - target: Spacey
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.getspacey.SpaceyTests
+
+schemes:
+  Spacey:
+    build:
+      targets:
+        Spacey: all
+        SpaceyTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - SpaceyTests

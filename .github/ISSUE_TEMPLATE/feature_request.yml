@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an idea for Spacey
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or pain point.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: false
+  - type: checkboxes
+    id: no-sip
+    attributes:
+      label: Constraint check
+      description: Spacey will not ship features that require disabling SIP. See docs/PLAN.md.
+      options:
+        - label: I understand this feature should work without disabling SIP.
+          required: true

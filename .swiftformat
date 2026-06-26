@@ -1,0 +1,18 @@
+# SwiftFormat configuration — see https://github.com/nicklockwood/SwiftFormat
+--swiftversion 5.9
+
+--exclude .build,DerivedData
+
+# Style
+--indent 4
+--maxwidth 120
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--commas inline
+--trimwhitespace always
+--self remove
+--importgrouping testable-bottom
+
+# Disable rules that fight with our intent
+--disable redundantReturn

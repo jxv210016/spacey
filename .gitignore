@@ -1,0 +1,22 @@
+# Generated Xcode project (regenerate with `xcodegen generate`)
+*.xcodeproj
+
+# Xcode / SwiftPM build artifacts
+.build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+*.xcuserstate
+
+# macOS
+.DS_Store
+
+# Signing / secrets — never commit
+*.p12
+*.cer
+*.provisionprofile
+*.mobileprovision
+
+# Distribution artifacts
+*.dmg
+*.zip
