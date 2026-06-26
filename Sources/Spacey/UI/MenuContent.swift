@@ -42,9 +42,14 @@ struct MenuContent: View {
     private var spacesList: some View {
         ForEach(Array(store.displays.enumerated()), id: \.element.displayID) { _, display in
             if store.displays.count > 1 {
-                Text("Display \(display.displayID.prefix(8))…")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text("Display \(display.displayID.prefix(8))…")
+                    if display.displayID == store.activeDisplayID {
+                        Text("active").foregroundStyle(Color.accentColor)
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             ForEach(display.spaces) { space in
                 spaceRow(space)

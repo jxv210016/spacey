@@ -3,45 +3,41 @@ import Combine
 
 /// Observable source of truth for the current Spaces layout.
 ///
-/// Phase 0: refreshes from SkyLight on `activeSpaceDidChangeNotification`. A future
-/// phase adds the `com.apple.spaces.plist` `.delete` watch for changes the
-/// notification misses (e.g. adding/removing spaces, some fullscreen transitions).
+/// Refreshes from SkyLight whenever `SpaceChangeMonitor` reports a change — space
+/// switches, structural plist rewrites, and display reconfiguration.
 @MainActor
 final class SpacesStore: ObservableObject {
     @Published private(set) var displays: [DisplaySpaces] = []
+    @Published private(set) var activeDisplayID: String?
     @Published private(set) var isAvailable: Bool = SkyLightBridge.isAvailable
 
-    private var spaceChangeObserver: NSObjectProtocol?
+    private var monitor: SpaceChangeMonitor?
 
-    init() {
+    init(startMonitoring: Bool = true) {
         refresh()
-        spaceChangeObserver = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.activeSpaceDidChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in self?.refresh() }
-        }
+        guard startMonitoring else { return }
+        let monitor = SpaceChangeMonitor { [weak self] in self?.refresh() }
+        monitor.start()
+        self.monitor = monitor
     }
 
-    deinit {
-        if let spaceChangeObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(spaceChangeObserver)
-        }
-    }
+    // No deinit needed: releasing `monitor` triggers SpaceChangeMonitor.deinit
+    // (removes observers) and, transitively, SpacesPlistWatcher.deinit (cancels the
+    // dispatch source).
 
     func refresh() {
         isAvailable = SkyLightBridge.isAvailable
         displays = SpacesReader.snapshot()
+        activeDisplayID = SkyLightBridge.activeDisplayIdentifier()
     }
 
     /// All spaces across every display, in order.
     var allSpaces: [Space] {
-        displays.flatMap(\.spaces)
+        displays.allSpaces
     }
 
-    /// The active space on the main display, if any.
+    /// The space the user is currently looking at (active display aware).
     var currentSpace: Space? {
-        allSpaces.first(where: \.isCurrent)
+        displays.currentSpace(activeDisplayID: activeDisplayID)
     }
 }

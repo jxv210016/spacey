@@ -16,3 +16,5 @@
 
 # Disable rules that fight with our intent
 --disable redundantReturn
+# Keep braces on the same line as multi-line conditions (matches SwiftLint opening_brace)
+--disable wrapMultilineStatementBraces

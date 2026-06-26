@@ -65,8 +65,8 @@ and regenerate.
 
 | Phase | Status | What |
 |------:|:------:|------|
-| 0 | ✅ in progress | Scaffold, CI, live menu-bar Space indicator (read path) |
-| 1 | ⏳ | Robust change observation (plist watch), multi-display polish |
+| 0 | ✅ done | Scaffold, CI, live menu-bar Space indicator (read path) |
+| 1 | ✅ done | Robust change observation (plist watch + display events), multi-display polish |
 | 2 | ⏳ | Naming: labels, icons, colors, persistence |
 | 3 | ⏳ | Hotkeys + quick-switcher palette + jump-to-previous |
 | 4 | ⏳ | Move-window-to-Space, launch at login, settings polish |

@@ -19,6 +19,7 @@ enum SkyLightBridge {
 
     private typealias MainConnectionIDFn = @convention(c) () -> Int32
     private typealias CopyManagedDisplaySpacesFn = @convention(c) (Int32) -> Unmanaged<CFArray>?
+    private typealias CopyActiveDisplayFn = @convention(c) (Int32) -> Unmanaged<CFString>?
 
     private static func symbol<T>(_ name: String, as _: T.Type) -> T? {
         guard let handle, let pointer = dlsym(handle, name) else { return nil }
@@ -33,6 +34,10 @@ enum SkyLightBridge {
     private static let copyManagedDisplaySpaces: CopyManagedDisplaySpacesFn? =
         symbol("SLSCopyManagedDisplaySpaces", as: CopyManagedDisplaySpacesFn.self)
             ?? symbol("CGSCopyManagedDisplaySpaces", as: CopyManagedDisplaySpacesFn.self)
+
+    private static let copyActiveDisplay: CopyActiveDisplayFn? =
+        symbol("SLSCopyActiveMenuBarDisplayIdentifier", as: CopyActiveDisplayFn.self)
+            ?? symbol("CGSCopyActiveMenuBarDisplayIdentifier", as: CopyActiveDisplayFn.self)
 
     /// Whether the read path is usable on this macOS build.
     static var isAvailable: Bool {
@@ -55,5 +60,13 @@ enum SkyLightBridge {
         guard let cid = mainConnectionID?(), let copy = copyManagedDisplaySpaces else { return nil }
         guard let array = copy(cid)?.takeRetainedValue() as? [[String: Any]] else { return nil }
         return array
+    }
+
+    /// UUID of the display that currently owns the active menu bar (i.e. the display
+    /// the user is interacting with), or `nil` if unavailable. Used to pick which
+    /// display's "current space" to surface on multi-monitor setups.
+    static func activeDisplayIdentifier() -> String? {
+        guard let cid = mainConnectionID?(), let copy = copyActiveDisplay else { return nil }
+        return copy(cid)?.takeRetainedValue() as String?
     }
 }
