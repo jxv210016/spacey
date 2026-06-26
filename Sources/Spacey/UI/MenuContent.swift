@@ -1,33 +1,30 @@
 import SwiftUI
 
-/// The popover shown from the menu-bar item. Phase 0: a read-only live view of the
-/// current Spaces layout, proving the SkyLight read path. Naming, switching, and
-/// hotkeys arrive in later phases.
+/// The popover shown from the menu-bar item. Lists every Space and lets the user
+/// name each one inline (label + icon + color). Switching/hotkeys arrive in Phase 3.
 struct MenuContent: View {
     @ObservedObject var store: SpacesStore
+    @ObservedObject var names: SpaceNamesStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
-
             Divider()
 
             if !store.isAvailable {
                 Label("SkyLight APIs unavailable on this macOS build.", systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)
             } else if store.allSpaces.isEmpty {
-                Text("No spaces found.")
-                    .foregroundStyle(.secondary)
+                Text("No spaces found.").foregroundStyle(.secondary)
             } else {
                 spacesList
             }
 
             Divider()
-
             footer
         }
         .padding(12)
-        .frame(width: 320)
+        .frame(width: 360)
     }
 
     private var header: some View {
@@ -52,25 +49,8 @@ struct MenuContent: View {
                 .foregroundStyle(.secondary)
             }
             ForEach(display.spaces) { space in
-                spaceRow(space)
+                SpaceRow(space: space, names: names)
             }
-        }
-    }
-
-    private func spaceRow(_ space: Space) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: space.isCurrent ? "largecircle.fill.circle" : "circle")
-                .foregroundStyle(space.isCurrent ? Color.accentColor : .secondary)
-            Text("Space \(space.indexOnDisplay)")
-            if !space.isUserSpace {
-                Text("fullscreen/type \(space.type)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Text(space.uuid.prefix(8) + "…")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.tertiary)
         }
     }
 
@@ -81,5 +61,88 @@ struct MenuContent: View {
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
         }
+    }
+}
+
+/// A single editable Space row: current marker, color/icon pickers, and a name field.
+private struct SpaceRow: View {
+    let space: Space
+    @ObservedObject var names: SpaceNamesStore
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: space.isCurrent ? "largecircle.fill.circle" : "circle")
+                .foregroundStyle(space.isCurrent ? Color.accentColor : .secondary)
+                .help(space.isCurrent ? "Current space" : "")
+
+            colorPicker
+            iconPicker
+
+            TextField("Space \(space.indexOnDisplay)", text: labelBinding)
+                .textFieldStyle(.roundedBorder)
+
+            if name != nil {
+                Button {
+                    names.clear(space.identity)
+                } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.borderless)
+                .help("Clear name")
+            }
+        }
+    }
+
+    private var name: SpaceName? {
+        names.name(for: space.identity)
+    }
+
+    private var resolvedColor: Color {
+        name?.colorHex.flatMap(Color.init(hex:)) ?? .secondary
+    }
+
+    private var labelBinding: Binding<String> {
+        Binding(
+            get: { names.name(for: space.identity)?.label ?? "" },
+            set: { names.setLabel($0, for: space.identity) }
+        )
+    }
+
+    private var colorPicker: some View {
+        Menu {
+            Button("None") { names.setColorHex(nil, for: space.identity) }
+            ForEach(SpacePalette.colors, id: \.hex) { swatch in
+                Button {
+                    names.setColorHex(swatch.hex, for: space.identity)
+                } label: {
+                    Label(swatch.name, systemImage: "circle.fill")
+                }
+            }
+        } label: {
+            Image(systemName: "circle.fill").foregroundStyle(resolvedColor)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Color")
+    }
+
+    private var iconPicker: some View {
+        Menu {
+            Button("Default") { names.setSymbol(nil, for: space.identity) }
+            ForEach(SpacePalette.symbols, id: \.self) { symbol in
+                Button {
+                    names.setSymbol(symbol, for: space.identity)
+                } label: {
+                    Label(symbol, systemImage: symbol)
+                }
+            }
+        } label: {
+            Image(systemName: SpaceDisplay.symbol(for: space, name: name))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Icon")
     }
 }

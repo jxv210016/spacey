@@ -3,21 +3,35 @@ import SwiftUI
 @main
 struct SpaceyApp: App {
     @StateObject private var store = SpacesStore()
+    @StateObject private var names = SpaceNamesStore()
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(store: store)
+            MenuContent(store: store, names: names)
         } label: {
-            // The menu-bar title shows the current space's number for now.
-            // A future phase swaps this for the custom name/icon.
-            Image(systemName: "rectangle.3.group")
-            Text(menuBarTitle)
+            // Menu-bar title: the current Space's custom name, or its number.
+            let current = store.currentSpace
+            Image(systemName: SpaceDisplay.symbol(for: current ?? .placeholder, name: currentName))
+            Text(SpaceDisplay.menuBarTitle(for: current, name: currentName))
         }
         .menuBarExtraStyle(.window)
     }
 
-    private var menuBarTitle: String {
-        guard let current = store.currentSpace else { return "–" }
-        return "\(current.globalIndex)"
+    private var currentName: SpaceName? {
+        guard let current = store.currentSpace else { return nil }
+        return names.name(for: current.identity)
     }
+}
+
+private extension Space {
+    /// Neutral stand-in used only for the menu-bar icon when no space is current.
+    static let placeholder = Space(
+        uuid: "",
+        managedID: 0,
+        displayID: "",
+        indexOnDisplay: 0,
+        globalIndex: 0,
+        isCurrent: false,
+        type: 0
+    )
 }

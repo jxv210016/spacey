@@ -67,7 +67,7 @@ and regenerate.
 |------:|:------:|------|
 | 0 | ✅ done | Scaffold, CI, live menu-bar Space indicator (read path) |
 | 1 | ✅ done | Robust change observation (plist watch + display events), multi-display polish |
-| 2 | ⏳ | Naming: labels, icons, colors, persistence |
+| 2 | ✅ done | Naming: labels, icons, colors, persistence (inline in the menu) |
 | 3 | ⏳ | Hotkeys + quick-switcher palette + jump-to-previous |
 | 4 | ⏳ | Move-window-to-Space, launch at login, settings polish |
 | 5 | ⏳ | Signing, notarization, Sparkle auto-update, Homebrew Cask |

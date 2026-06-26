@@ -20,3 +20,7 @@ xcuserdata/
 # Distribution artifacts
 *.dmg
 *.zip
+
+# Coverage profile artifacts
+*.profraw
+*.profdata
