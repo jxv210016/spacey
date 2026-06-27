@@ -2,36 +2,26 @@ import SwiftUI
 
 @main
 struct SpaceyApp: App {
-    @StateObject private var store = SpacesStore()
-    @StateObject private var names = SpaceNamesStore()
+    @StateObject private var model = AppModel()
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(store: store, names: names)
+            MenuContent(
+                store: model.spaces,
+                names: model.names,
+                labeler: model.labeler,
+                accessibility: model.accessibility
+            )
         } label: {
-            // Menu-bar title: the current Space's custom name, or its number.
-            let current = store.currentSpace
-            Image(systemName: SpaceDisplay.symbol(for: current ?? .placeholder, name: currentName))
-            Text(SpaceDisplay.menuBarTitle(for: current, name: currentName))
+            MenuBarLabel(store: model.spaces, names: model.names)
+                // The menu-bar label renders at launch, giving us a reliable hook to
+                // present first-run onboarding once the app is up.
+                .onAppear { model.presentOnboardingIfNeeded() }
         }
         .menuBarExtraStyle(.window)
-    }
 
-    private var currentName: SpaceName? {
-        guard let current = store.currentSpace else { return nil }
-        return names.name(for: current.identity)
+        Settings {
+            SettingsView(model: model)
+        }
     }
-}
-
-private extension Space {
-    /// Neutral stand-in used only for the menu-bar icon when no space is current.
-    static let placeholder = Space(
-        uuid: "",
-        managedID: 0,
-        displayID: "",
-        indexOnDisplay: 0,
-        globalIndex: 0,
-        isCurrent: false,
-        type: 0
-    )
 }
