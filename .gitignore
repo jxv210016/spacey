@@ -24,3 +24,6 @@ xcuserdata/
 # Coverage profile artifacts
 *.profraw
 *.profdata
+
+# Claude Code tooling (worktrees, local state)
+.claude/
