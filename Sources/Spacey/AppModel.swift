@@ -13,6 +13,7 @@ final class AppModel: ObservableObject {
     let accessibility = AccessibilityMonitor()
 
     private let onboardingPresenter = OnboardingPresenter()
+    private let settingsPresenter = SettingsPresenter()
     private var cancellables = Set<AnyCancellable>()
 
     init() {
@@ -46,5 +47,10 @@ final class AppModel: ObservableObject {
     /// Open (or re-open) the onboarding flow; used at first launch and "Replay setup…".
     func showOnboarding() {
         onboardingPresenter.show(state: onboarding, accessibility: accessibility)
+    }
+
+    /// Open the Settings window.
+    func showSettings() {
+        settingsPresenter.show(model: self)
     }
 }

@@ -15,16 +15,6 @@ enum AppActivation {
     }
 
     /// Open the SwiftUI `Settings` scene, made reliable for an accessory app.
-    static func openSettings() {
-        becomeRegular()
-        // macOS 13+ renamed the selector from `showPreferencesWindow:`.
-        if NSApp.responds(to: Selector(("showSettingsWindow:"))) {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        } else {
-            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-        }
-    }
-
     /// Start watching window closes; when no titled window remains visible, revert to
     /// `.accessory`. Safe to call once at startup.
     static func observeWindowClosures() {

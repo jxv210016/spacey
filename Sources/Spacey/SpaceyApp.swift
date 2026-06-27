@@ -10,7 +10,8 @@ struct SpaceyApp: App {
                 store: model.spaces,
                 names: model.names,
                 labeler: model.labeler,
-                accessibility: model.accessibility
+                accessibility: model.accessibility,
+                onOpenSettings: { model.showSettings() }
             )
         } label: {
             MenuBarLabel(store: model.spaces, names: model.names)
@@ -19,9 +20,5 @@ struct SpaceyApp: App {
                 .onAppear { model.presentOnboardingIfNeeded() }
         }
         .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView(model: model)
-        }
     }
 }

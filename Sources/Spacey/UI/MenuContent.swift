@@ -8,6 +8,7 @@ struct MenuContent: View {
     @ObservedObject var names: SpaceNamesStore
     @ObservedObject var labeler: MissionControlLabeler
     @ObservedObject var accessibility: AccessibilityMonitor
+    let onOpenSettings: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -143,7 +144,7 @@ struct MenuContent: View {
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                 Spacer()
-                Button("Settings…") { AppActivation.openSettings() }
+                Button("Settings…") { onOpenSettings() }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
                     .keyboardShortcut(",")
