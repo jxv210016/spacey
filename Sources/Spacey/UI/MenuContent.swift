@@ -33,12 +33,6 @@ struct MenuContent: View {
                 .foregroundStyle(.tint)
             Text("Spacey").font(.headline)
             Spacer()
-            if let current = store.currentSpace {
-                Text(SpaceDisplay.title(for: current, name: names.name(for: current.identity)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
@@ -149,9 +143,6 @@ struct MenuContent: View {
             Divider()
 
             HStack(spacing: 12) {
-                Text("Spacey")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
                 Spacer()
                 Button("Settings…") { onOpenSettings() }
                     .buttonStyle(.plain)

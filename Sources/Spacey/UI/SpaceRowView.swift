@@ -194,6 +194,10 @@ private struct SpaceMark: View {
                 Image(systemName: symbol)
                     .font(.system(size: 8, weight: .bold))
                     .foregroundStyle(color == nil ? Color.secondary : .white)
+                    // SF Symbol image frames reserve descender space at the bottom, so a
+                    // geometrically-centered glyph reads as too high. Nudge down ~1/16 of the
+                    // point size to optically center it in the circle.
+                    .offset(y: 0.5)
             }
         }
         .frame(width: 14, height: 14)

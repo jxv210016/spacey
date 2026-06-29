@@ -50,12 +50,16 @@ struct DemoSpaceMark: View {
     var diameter: CGFloat = 16
 
     var body: some View {
-        Circle()
+        let glyphSize = diameter * 0.55
+        return Circle()
             .fill(color)
             .overlay {
                 Image(systemName: symbol)
-                    .font(.system(size: diameter * 0.55, weight: .bold))
+                    .font(.system(size: glyphSize, weight: .bold))
                     .foregroundStyle(.white)
+                    // Compensate for the descender space baked into SF Symbol image frames,
+                    // which otherwise makes a centered glyph sit too high. See SpaceMark.
+                    .offset(y: glyphSize / 16)
             }
             .frame(width: diameter, height: diameter)
             .overlay {
