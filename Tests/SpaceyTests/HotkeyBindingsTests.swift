@@ -11,7 +11,7 @@ final class HotkeyBindingsTests: XCTestCase {
 
     @MainActor
     func testSeedsDefaultsOnFirstLaunch() throws {
-        let bindings = HotkeyBindings(defaults: try makeDefaults())
+        let bindings = try HotkeyBindings(defaults: makeDefaults())
         // The Quick Switcher ships with a default; the others start unbound.
         XCTAssertNotNil(bindings.combo(for: .toggleQuickSwitcher))
         XCTAssertNil(bindings.combo(for: .previousSpace))

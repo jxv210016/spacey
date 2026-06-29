@@ -30,7 +30,7 @@ enum SpaceDisplay {
 
     /// The symbol to show *inside the color dot*: the explicit pick or a name-based
     /// suggestion, but never the positional default — an unstyled Space keeps a plain dot.
-    static func markSymbol(for space: Space, name: SpaceName?, suggestions: Bool = true) -> String? {
+    static func markSymbol(for _: Space, name: SpaceName?, suggestions: Bool = true) -> String? {
         if let symbol = name?.symbol, !symbol.isEmpty { return symbol }
         if suggestions, let label = name?.trimmedLabel { return IconSuggestion.symbol(forLabel: label) }
         return nil
@@ -39,7 +39,7 @@ enum SpaceDisplay {
     /// The `#RRGGBB` accent to use. Resolution order: the user's explicit color, then a
     /// suggestion inferred from the custom name (when `suggestions` is on), else `nil`
     /// (no color / outlined dot).
-    static func colorHex(for space: Space, name: SpaceName?, suggestions: Bool = true) -> String? {
+    static func colorHex(for _: Space, name: SpaceName?, suggestions: Bool = true) -> String? {
         if let hex = name?.colorHex, !hex.isEmpty { return hex }
         if suggestions, let label = name?.trimmedLabel { return IconSuggestion.colorHex(forLabel: label) }
         return nil

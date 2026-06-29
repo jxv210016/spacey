@@ -6,8 +6,13 @@ import SwiftUI
 /// keyboard focus. Plain borderless windows refuse key status, which would leave the
 /// palette unable to capture typing — overriding these two properties fixes that.
 final class QuickSwitcherPanel: NSPanel {
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { true }
+    override var canBecomeKey: Bool {
+        true
+    }
+
+    override var canBecomeMain: Bool {
+        true
+    }
 }
 
 /// Owns the Quick Switcher palette: a centered, floating panel presented on demand.
@@ -97,7 +102,7 @@ final class QuickSwitcherPresenter: NSObject, NSWindowDelegate {
     private func installKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
-            return self.handle(event) ? nil : event
+            return handle(event) ? nil : event
         }
     }
 

@@ -95,7 +95,7 @@ final class HotkeyManager {
 /// Pulls the firing hotkey id out of the Carbon event and forwards it to the manager
 /// passed through `userData`.
 private func hotKeyEventCallback(
-    _ callRef: EventHandlerCallRef?,
+    _: EventHandlerCallRef?,
     _ event: EventRef?,
     _ userData: UnsafeMutableRawPointer?
 ) -> OSStatus {

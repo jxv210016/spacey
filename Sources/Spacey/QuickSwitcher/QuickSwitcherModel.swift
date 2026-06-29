@@ -8,7 +8,10 @@ import Foundation
 @MainActor
 final class QuickSwitcherModel: ObservableObject {
     /// The type-to-filter text.
-    @Published var query = "" { didSet { clampSelection() } }
+    @Published var query = "" {
+        didSet { clampSelection() }
+    }
+
     /// Index into `results` of the highlighted row.
     @Published private(set) var selection = 0
 
@@ -21,7 +24,7 @@ final class QuickSwitcherModel: ObservableObject {
 
     /// The currently highlighted entry, if any.
     var selectedEntry: QuickSwitcherEntry? {
-        let results = self.results
+        let results = results
         return results.indices.contains(selection) ? results[selection] : nil
     }
 
@@ -54,7 +57,7 @@ final class QuickSwitcherModel: ObservableObject {
     /// The entry at a 1-based position in the current results, for numeric quick-jump.
     func entry(forNumber number: Int) -> QuickSwitcherEntry? {
         let index = number - 1
-        let results = self.results
+        let results = results
         return results.indices.contains(index) ? results[index] : nil
     }
 

@@ -10,7 +10,9 @@ enum MenuBarStyle: String, CaseIterable, Identifiable {
     /// Just the glyph, for the most compact menu bar.
     case iconOnly
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var title: String {
         switch self {
@@ -20,8 +22,13 @@ enum MenuBarStyle: String, CaseIterable, Identifiable {
         }
     }
 
-    var showsIcon: Bool { self != .nameOnly }
-    var showsName: Bool { self != .iconOnly }
+    var showsIcon: Bool {
+        self != .nameOnly
+    }
+
+    var showsName: Bool {
+        self != .iconOnly
+    }
 }
 
 /// Persisted look-and-feel preferences. Currently just the menu-bar item style, but a

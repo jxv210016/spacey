@@ -13,7 +13,7 @@ final class HotkeyActionTests: XCTestCase {
     func testThereAreNineJumpActions() {
         let jumps = HotkeyAction.allCases.filter { $0.targetDesktopNumber != nil }
         XCTAssertEqual(jumps.count, 9)
-        XCTAssertEqual(Set(jumps.compactMap { $0.targetDesktopNumber }), Set(1 ... 9))
+        XCTAssertEqual(Set(jumps.compactMap(\.targetDesktopNumber)), Set(1 ... 9))
     }
 
     func testJumpDefaultsAreControlDigit() throws {

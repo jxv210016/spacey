@@ -113,7 +113,7 @@ final class AppModel: ObservableObject {
     private func jumpToPreviousSpace() {
         let snapshot = SpacesReader.snapshot()
         guard let identity = previousSpace.previousIdentity,
-              let target = snapshot.flatMap({ $0.spaces }).first(where: { $0.identity == identity }),
+              let target = snapshot.flatMap(\.spaces).first(where: { $0.identity == identity }),
               !target.isCurrent,
               let display = snapshot.first(where: { $0.displayID == target.displayID }),
               let current = display.spaces.first(where: { $0.isCurrent })

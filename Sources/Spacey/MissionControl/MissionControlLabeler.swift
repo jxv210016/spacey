@@ -110,7 +110,9 @@ final class MissionControlLabeler: ObservableObject {
     ///   pill's X dropped into that strip so labels appear under the collapsed pills.
     /// - Otherwise (bar off screen / mid-animation): draw nothing.
     private func positionedThumbnails(_ thumbnails: [SpaceThumbnail], screen: NSScreen) -> [SpaceThumbnail] {
-        func onScreen(_ midY: CGFloat) -> Bool { midY > 0 && midY < screen.frame.height }
+        func onScreen(_ midY: CGFloat) -> Bool {
+            midY > 0 && midY < screen.frame.height
+        }
 
         let expanded = thumbnails.filter { onScreen($0.frame.midY) }
         if !expanded.isEmpty { return expanded }

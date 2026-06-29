@@ -11,7 +11,9 @@ struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
         case general, appearance, shortcuts, missionControl, permissions, updates, about
 
-        var id: String { rawValue }
+        var id: String {
+            rawValue
+        }
 
         var title: String {
             switch self {

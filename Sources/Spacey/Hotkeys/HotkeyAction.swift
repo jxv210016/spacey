@@ -16,7 +16,9 @@ enum HotkeyAction: String, CaseIterable, Identifiable, Codable {
     case jumpToDesktop1, jumpToDesktop2, jumpToDesktop3, jumpToDesktop4, jumpToDesktop5
     case jumpToDesktop6, jumpToDesktop7, jumpToDesktop8, jumpToDesktop9
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     /// For the positional jump actions, the 1-based desktop they target; `nil` otherwise.
     var targetDesktopNumber: Int? {
@@ -83,8 +85,17 @@ enum HotkeyAction: String, CaseIterable, Identifiable, Codable {
 
     /// Virtual key code for number-row digit `number` (1…9).
     private static func digitKeyCode(_ number: Int) -> UInt16 {
-        let codes = [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
-                     kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9]
+        let codes = [
+            kVK_ANSI_1,
+            kVK_ANSI_2,
+            kVK_ANSI_3,
+            kVK_ANSI_4,
+            kVK_ANSI_5,
+            kVK_ANSI_6,
+            kVK_ANSI_7,
+            kVK_ANSI_8,
+            kVK_ANSI_9
+        ]
         let index = min(max(number, 1), codes.count) - 1
         return UInt16(codes[index])
     }

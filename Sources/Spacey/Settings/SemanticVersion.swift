@@ -28,7 +28,7 @@ struct SemanticVersion: Comparable, CustomStringConvertible {
 
     static func < (lhs: SemanticVersion, rhs: SemanticVersion) -> Bool {
         let count = max(lhs.components.count, rhs.components.count)
-        for index in 0..<count where lhs.part(index) != rhs.part(index) {
+        for index in 0 ..< count where lhs.part(index) != rhs.part(index) {
             return lhs.part(index) < rhs.part(index)
         }
         return false
@@ -36,7 +36,7 @@ struct SemanticVersion: Comparable, CustomStringConvertible {
 
     static func == (lhs: SemanticVersion, rhs: SemanticVersion) -> Bool {
         let count = max(lhs.components.count, rhs.components.count)
-        return (0..<count).allSatisfy { lhs.part($0) == rhs.part($0) }
+        return (0 ..< count).allSatisfy { lhs.part($0) == rhs.part($0) }
     }
 
     /// Component at `index`, treating missing trailing positions as `0` so `1.2`
@@ -48,7 +48,11 @@ struct SemanticVersion: Comparable, CustomStringConvertible {
     /// A clean, display-ready version string built from the numeric components
     /// (e.g. `0.2.0`). Unlike `raw`, it drops any leading `v`/`V` and metadata, so
     /// callers can prefix their own label without producing "v" duplication.
-    var normalized: String { components.map(String.init).joined(separator: ".") }
+    var normalized: String {
+        components.map(String.init).joined(separator: ".")
+    }
 
-    var description: String { raw }
+    var description: String {
+        raw
+    }
 }

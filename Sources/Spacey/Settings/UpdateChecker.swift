@@ -79,7 +79,7 @@ final class UpdateChecker: ObservableObject {
                 status = .upToDate
                 return
             }
-            guard 200..<300 ~= code else {
+            guard 200 ..< 300 ~= code else {
                 status = .failed("GitHub returned an error (\(code)).")
                 return
             }

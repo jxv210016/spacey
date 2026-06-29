@@ -33,7 +33,7 @@ enum SpaceSwitcher {
     /// Switch from the 1-based `current` index to `target` on the active display. The
     /// `displayCount` is retained for source compatibility with existing callers; the loop
     /// derives every bound it needs from live SkyLight reads.
-    static func move(toIndex target: Int, fromIndex current: Int, displayCount: Int) {
+    static func move(toIndex target: Int, fromIndex current: Int, displayCount _: Int) {
         navigate(fromIndex: current, toIndex: target)
     }
 
