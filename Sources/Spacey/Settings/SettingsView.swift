@@ -9,7 +9,7 @@ struct SettingsView: View {
     /// The selectable panes, in sidebar order. Each carries its own label and tint so the
     /// sidebar and the pane header stay in sync.
     enum Pane: String, CaseIterable, Identifiable {
-        case general, appearance, missionControl, permissions, updates, about
+        case general, appearance, shortcuts, missionControl, permissions, updates, about
 
         var id: String { rawValue }
 
@@ -17,6 +17,7 @@ struct SettingsView: View {
             switch self {
             case .general: return "General"
             case .appearance: return "Appearance"
+            case .shortcuts: return "Shortcuts"
             case .missionControl: return "Mission Control"
             case .permissions: return "Permissions"
             case .updates: return "Updates"
@@ -28,6 +29,7 @@ struct SettingsView: View {
             switch self {
             case .general: return "gearshape"
             case .appearance: return "paintbrush"
+            case .shortcuts: return "command"
             case .missionControl: return "rectangle.3.group"
             case .permissions: return "lock.shield"
             case .updates: return "arrow.triangle.2.circlepath"
@@ -39,6 +41,7 @@ struct SettingsView: View {
             switch self {
             case .general: return .gray
             case .appearance: return .indigo
+            case .shortcuts: return .pink
             case .missionControl: return .blue
             case .permissions: return .orange
             case .updates: return .green
@@ -76,6 +79,8 @@ struct SettingsView: View {
             GeneralSettingsTab(launchAtLogin: model.launchAtLogin, onReplaySetup: model.showOnboarding)
         case .appearance:
             AppearanceSettingsTab(appearance: model.appearance)
+        case .shortcuts:
+            ShortcutsSettingsTab(bindings: model.hotkeys)
         case .missionControl:
             MissionControlSettingsTab(labeler: model.labeler, accessibility: model.accessibility)
         case .permissions:
