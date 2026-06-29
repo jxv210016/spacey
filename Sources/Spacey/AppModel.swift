@@ -25,17 +25,18 @@ final class AppModel: ObservableObject {
     init() {
         let spaces = SpacesStore()
         let names = SpaceNamesStore()
+        let appearance = AppearanceSettings()
         self.spaces = spaces
         self.names = names
-        labeler = MissionControlLabeler(store: spaces, names: names)
+        self.appearance = appearance
+        labeler = MissionControlLabeler(store: spaces, names: names, appearance: appearance)
         launchAtLogin = LaunchAtLogin()
         onboarding = OnboardingState()
-        appearance = AppearanceSettings()
         let updates = UpdateChecker()
         self.updates = updates
         let hotkeys = HotkeyBindings()
         self.hotkeys = hotkeys
-        quickSwitcher = QuickSwitcherPresenter(store: spaces, names: names)
+        quickSwitcher = QuickSwitcherPresenter(store: spaces, names: names, appearance: appearance)
 
         labeler.start()
         accessibility.start()

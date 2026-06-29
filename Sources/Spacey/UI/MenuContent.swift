@@ -8,6 +8,7 @@ struct MenuContent: View {
     @ObservedObject var names: SpaceNamesStore
     @ObservedObject var labeler: MissionControlLabeler
     @ObservedObject var accessibility: AccessibilityMonitor
+    @ObservedObject var appearance: AppearanceSettings
     let onOpenSettings: () -> Void
 
     var body: some View {
@@ -72,7 +73,7 @@ struct MenuContent: View {
                         displayHeader(display)
                     }
                     ForEach(display.spaces) { space in
-                        SpaceRowView(space: space, names: names, onActivate: { activate(space) })
+                        SpaceRowView(space: space, names: names, appearance: appearance, onActivate: { activate(space) })
                     }
                 }
             }

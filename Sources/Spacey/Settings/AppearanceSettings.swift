@@ -33,12 +33,20 @@ final class AppearanceSettings: ObservableObject {
         didSet { defaults.set(menuBarStyle.rawValue, forKey: Self.styleKey) }
     }
 
+    /// Whether to infer an icon and color from a Space's name when the user hasn't picked
+    /// one explicitly. On by default; turning it off restores plain, neutral defaults.
+    @Published var suggestIcons: Bool {
+        didSet { defaults.set(suggestIcons, forKey: Self.suggestKey) }
+    }
+
     private static let styleKey = "com.getspacey.appearance.menuBarStyle"
+    private static let suggestKey = "com.getspacey.appearance.suggestIcons"
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let stored = defaults.string(forKey: Self.styleKey).flatMap(MenuBarStyle.init)
         menuBarStyle = stored ?? .iconAndName
+        suggestIcons = defaults.object(forKey: Self.suggestKey) as? Bool ?? true
     }
 }

@@ -51,6 +51,26 @@ final class SpaceDisplayTests: XCTestCase {
         XCTAssertEqual(SpaceDisplay.symbol(for: space(type: 4), name: nil), "rectangle.inset.filled")
     }
 
+    func testSymbolUsesNameSuggestionWhenNoExplicitPick() {
+        XCTAssertEqual(SpaceDisplay.symbol(for: space(), name: SpaceName(label: "Mail")), "envelope")
+    }
+
+    func testExplicitSymbolOverridesSuggestion() {
+        let named = SpaceName(label: "Mail", symbol: "hammer")
+        XCTAssertEqual(SpaceDisplay.symbol(for: space(), name: named), "hammer")
+    }
+
+    func testSymbolIgnoresSuggestionForUnnamedSpace() {
+        XCTAssertEqual(SpaceDisplay.symbol(for: space(type: 0), name: SpaceName()), "square.dashed")
+    }
+
+    func testColorHexPrefersExplicitThenSuggestionThenNil() {
+        XCTAssertEqual(SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Mail", colorHex: "#FFFFFF")), "#FFFFFF")
+        XCTAssertEqual(SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Mail")), "#0A84FF")
+        XCTAssertNil(SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Zphqx")))
+        XCTAssertNil(SpaceDisplay.colorHex(for: space(), name: nil))
+    }
+
     func testIsNamed() {
         XCTAssertFalse(SpaceDisplay.isNamed(nil))
         XCTAssertFalse(SpaceDisplay.isNamed(SpaceName()))

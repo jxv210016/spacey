@@ -33,6 +33,17 @@ struct AppearanceSettingsTab: View {
                     Text("Preview")
                 }
             }
+
+            Section {
+                SettingsRow(
+                    title: "Suggest icons from names",
+                    subtitle: "Pick an icon and color automatically based on a Space’s name, until you choose your own."
+                ) {
+                    Toggle("", isOn: $appearance.suggestIcons)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                }
+            }
         }
     }
 

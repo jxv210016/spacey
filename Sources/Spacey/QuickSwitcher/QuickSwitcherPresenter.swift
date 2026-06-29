@@ -23,14 +23,16 @@ final class QuickSwitcherPanel: NSPanel {
 final class QuickSwitcherPresenter: NSObject, NSWindowDelegate {
     private let store: SpacesStore
     private let names: SpaceNamesStore
+    private let appearance: AppearanceSettings
     private let model = QuickSwitcherModel()
 
     private var panel: NSPanel?
     private var keyMonitor: Any?
 
-    init(store: SpacesStore, names: SpaceNamesStore) {
+    init(store: SpacesStore, names: SpaceNamesStore, appearance: AppearanceSettings) {
         self.store = store
         self.names = names
+        self.appearance = appearance
     }
 
     /// Toggle the palette: dismiss if open, otherwise present it.
@@ -39,7 +41,7 @@ final class QuickSwitcherPresenter: NSObject, NSWindowDelegate {
     }
 
     func show() {
-        let entries = QuickSwitcherEntry.entries(store: store, names: names)
+        let entries = QuickSwitcherEntry.entries(store: store, names: names, suggestions: appearance.suggestIcons)
         guard !entries.isEmpty else { NSSound.beep(); return }
         model.reset(entries: entries)
 

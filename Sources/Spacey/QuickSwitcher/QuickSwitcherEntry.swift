@@ -24,14 +24,14 @@ struct QuickSwitcherEntry: Identifiable, Equatable {
 extension QuickSwitcherEntry {
     /// Build the ordered entry list from the current Spaces + names.
     @MainActor
-    static func entries(store: SpacesStore, names: SpaceNamesStore) -> [QuickSwitcherEntry] {
+    static func entries(store: SpacesStore, names: SpaceNamesStore, suggestions: Bool = true) -> [QuickSwitcherEntry] {
         store.allSpaces.map { space in
             let name = names.name(for: space.identity)
             return QuickSwitcherEntry(
                 id: space.identity,
                 title: SpaceDisplay.title(for: space, name: name),
-                symbol: SpaceDisplay.symbol(for: space, name: name),
-                colorHex: name?.colorHex,
+                symbol: SpaceDisplay.symbol(for: space, name: name, suggestions: suggestions),
+                colorHex: SpaceDisplay.colorHex(for: space, name: name, suggestions: suggestions),
                 number: space.globalIndex,
                 isCurrent: space.isCurrent,
                 displayID: space.displayID,

@@ -15,7 +15,7 @@ struct MenuBarLabel: View {
 
         HStack(spacing: 4) {
             if style.showsIcon {
-                Image(systemName: glyph(for: record))
+                Image(systemName: glyph(for: current, record: record))
             }
             if style.showsName {
                 Text(SpaceDisplay.menuBarTitle(for: current, name: record))
@@ -23,8 +23,10 @@ struct MenuBarLabel: View {
         }
     }
 
-    private func glyph(for record: SpaceName?) -> String {
-        if let symbol = record?.symbol, !symbol.isEmpty { return symbol }
-        return "rectangle.3.group"
+    private func glyph(for space: Space?, record: SpaceName?) -> String {
+        // Route through SpaceDisplay so the menu bar shares the same explicit →
+        // suggested → default resolution (and fallback glyph) as the Spaces list.
+        guard let space else { return "rectangle.3.group" }
+        return SpaceDisplay.symbol(for: space, name: record, suggestions: appearance.suggestIcons)
     }
 }

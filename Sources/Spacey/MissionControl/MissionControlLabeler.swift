@@ -18,14 +18,16 @@ final class MissionControlLabeler: ObservableObject {
 
     private let store: SpacesStore
     private let names: SpaceNamesStore
+    private let appearance: AppearanceSettings
     private let defaults: UserDefaults
     private let overlay = MissionControlOverlayWindow()
     private var observer: MissionControlObserver?
     private var pollTimer: Timer?
 
-    init(store: SpacesStore, names: SpaceNamesStore, defaults: UserDefaults = .standard) {
+    init(store: SpacesStore, names: SpaceNamesStore, appearance: AppearanceSettings, defaults: UserDefaults = .standard) {
         self.store = store
         self.names = names
+        self.appearance = appearance
         self.defaults = defaults
         isEnabled = defaults.object(forKey: Self.enabledKey) as? Bool ?? true
     }
@@ -89,6 +91,7 @@ final class MissionControlLabeler: ObservableObject {
         let labels = OverlayMapping.labels(
             thumbnails: positioned,
             spaces: spaces,
+            suggestions: appearance.suggestIcons,
             name: { [names] identity in names.name(for: identity) }
         )
         overlay.show(labels: labels, on: screen)

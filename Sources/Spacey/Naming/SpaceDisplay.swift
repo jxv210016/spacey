@@ -17,10 +17,24 @@ enum SpaceDisplay {
         return "\(space.globalIndex)"
     }
 
-    /// The SF Symbol to show: the custom icon if set, otherwise a type-appropriate default.
-    static func symbol(for space: Space, name: SpaceName?) -> String {
+    /// The SF Symbol to show. Resolution order: the user's explicit pick, then a
+    /// suggestion inferred from the custom name (when `suggestions` is on), then a
+    /// type-appropriate default.
+    static func symbol(for space: Space, name: SpaceName?, suggestions: Bool = true) -> String {
         if let symbol = name?.symbol, !symbol.isEmpty { return symbol }
+        if suggestions, let label = name?.trimmedLabel, let suggested = IconSuggestion.symbol(forLabel: label) {
+            return suggested
+        }
         return space.isUserSpace ? "square.dashed" : "rectangle.inset.filled"
+    }
+
+    /// The `#RRGGBB` accent to use. Resolution order: the user's explicit color, then a
+    /// suggestion inferred from the custom name (when `suggestions` is on), else `nil`
+    /// (no color / outlined dot).
+    static func colorHex(for space: Space, name: SpaceName?, suggestions: Bool = true) -> String? {
+        if let hex = name?.colorHex, !hex.isEmpty { return hex }
+        if suggestions, let label = name?.trimmedLabel { return IconSuggestion.colorHex(forLabel: label) }
+        return nil
     }
 
     /// Whether the user has given this Space any custom identity.

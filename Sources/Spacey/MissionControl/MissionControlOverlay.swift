@@ -18,17 +18,24 @@ enum OverlayMapping {
     static func labels(
         thumbnails: [SpaceThumbnail],
         spaces: [Space],
+        suggestions: Bool = true,
         name: (String) -> SpaceName?
     ) -> [OverlayLabel] {
         thumbnails.compactMap { thumbnail in
             guard thumbnail.index >= 1, thumbnail.index <= spaces.count else { return nil }
             let space = spaces[thumbnail.index - 1]
             guard let record = name(space.identity), let text = record.trimmedLabel else { return nil }
+            // Explicit pick wins; otherwise fall back to the name-based suggestion (when
+            // enabled) so overlay chips match the icon/color shown everywhere else.
+            let suggestedSymbol = suggestions ? IconSuggestion.symbol(forLabel: text) : nil
+            let suggestedColor = suggestions ? IconSuggestion.colorHex(forLabel: text) : nil
+            let symbol = record.symbol.flatMap { $0.isEmpty ? nil : $0 } ?? suggestedSymbol
+            let colorHex = record.colorHex.flatMap { $0.isEmpty ? nil : $0 } ?? suggestedColor
             return OverlayLabel(
                 id: thumbnail.index,
                 text: text,
-                colorHex: record.colorHex,
-                symbol: record.symbol,
+                colorHex: colorHex,
+                symbol: symbol,
                 frame: thumbnail.frame
             )
         }

@@ -6,12 +6,14 @@ import SwiftUI
 struct SpaceRowView: View {
     let space: Space
     @ObservedObject var names: SpaceNamesStore
+    @ObservedObject var appearance: AppearanceSettings
     let onActivate: () -> Void
 
     @State private var draftLabel = ""
     @State private var isHovering = false
     @State private var isEditing = false
     @State private var showColorPicker = false
+    @State private var showIconPicker = false
     @FocusState private var fieldFocused: Bool
 
     var body: some View {
@@ -97,23 +99,21 @@ struct SpaceRowView: View {
     }
 
     private var iconMenu: some View {
-        Menu {
-            Button("Default icon") { names.setSymbol(nil, for: space.identity) }
-            ForEach(SpacePalette.symbols, id: \.self) { symbol in
-                Button {
-                    names.setSymbol(symbol, for: space.identity)
-                } label: {
-                    Label(symbol, systemImage: symbol)
-                }
-            }
-        } label: {
-            Image(systemName: SpaceDisplay.symbol(for: space, name: name))
+        Button { showIconPicker = true } label: {
+            Image(systemName: SpaceDisplay.symbol(for: space, name: name, suggestions: appearance.suggestIcons))
                 .font(.system(size: 12))
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
+        .buttonStyle(.plain)
         .help("Icon")
+        .popover(isPresented: $showIconPicker, arrowEdge: .bottom) {
+            IconPickerPopover(
+                selected: name?.symbol,
+                suggestion: appearance.suggestIcons ? (name?.trimmedLabel).flatMap(IconSuggestion.symbol(forLabel:)) : nil
+            ) { symbol in
+                names.setSymbol(symbol, for: space.identity)
+                showIconPicker = false
+            }
+        }
     }
 
     private func iconButton(_ systemName: String, help: String, action: @escaping () -> Void) -> some View {
@@ -143,7 +143,7 @@ struct SpaceRowView: View {
     }
 
     private var color: Color? {
-        name?.colorHex.flatMap(Color.init(hex:))
+        SpaceDisplay.colorHex(for: space, name: name, suggestions: appearance.suggestIcons).flatMap(Color.init(hex:))
     }
 
     private var defaultName: String {
@@ -196,6 +196,91 @@ private struct SpaceMark: View {
                 Circle().strokeBorder(Color.accentColor, lineWidth: 1.5).padding(-3)
             }
         }
+    }
+}
+
+/// A searchable icon picker shown in a popover from the icon button. Surfaces the
+/// name-based suggestion and a "Default" reset alongside the full searchable catalog.
+private struct IconPickerPopover: View {
+    /// The user's currently-stored explicit symbol (highlighted in the grid).
+    let selected: String?
+    /// The symbol inferred from the Space's name, if any (offered as a shortcut).
+    let suggestion: String?
+    /// `nil` means "use the default" (clears the explicit pick).
+    let onSelect: (String?) -> Void
+
+    @State private var query = ""
+
+    private let columns = Array(repeating: GridItem(.fixed(28), spacing: 8), count: 6)
+
+    private var results: [String] {
+        let needle = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !needle.isEmpty else { return SpacePalette.iconCatalog.map(\.symbol) }
+        return SpacePalette.iconCatalog
+            .filter { $0.symbol.lowercased().contains(needle) || $0.terms.contains(needle) }
+            .map(\.symbol)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Icon")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            HStack(spacing: 6) {
+                Button { onSelect(nil) } label: {
+                    Label("Default", systemImage: "circle.dashed").font(.caption)
+                }
+                .controlSize(.small)
+                if let suggestion {
+                    Button { onSelect(suggestion) } label: {
+                        Label("Suggested", systemImage: suggestion).font(.caption)
+                    }
+                    .controlSize(.small)
+                    .help("Suggested from the name")
+                }
+            }
+
+            TextField("Search icons", text: $query)
+                .textFieldStyle(.roundedBorder)
+
+            ScrollView {
+                if results.isEmpty {
+                    Text("No icons match “\(query)”")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
+                } else {
+                    LazyVGrid(columns: columns, spacing: 8) {
+                        ForEach(results, id: \.self) { cell($0) }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            .frame(height: 176)
+        }
+        .padding(14)
+        .frame(width: 264)
+    }
+
+    private func cell(_ symbol: String) -> some View {
+        Button { onSelect(symbol) } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 14))
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(symbol == selected ? Color.accentColor.opacity(0.25) : Color.primary.opacity(0.06))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .strokeBorder(Color.accentColor, lineWidth: symbol == selected ? 1.5 : 0)
+                )
+        }
+        .buttonStyle(.plain)
+        .help(symbol)
     }
 }
 

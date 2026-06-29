@@ -11,6 +11,7 @@ struct SpaceyApp: App {
                 names: model.names,
                 labeler: model.labeler,
                 accessibility: model.accessibility,
+                appearance: model.appearance,
                 onOpenSettings: { model.showSettings() }
             )
         } label: {
