@@ -1,9 +1,8 @@
 import SwiftUI
 
 /// First-run onboarding: a friendly, centered flow that welcomes the user, shows what
-/// Spacey does (naming + switching demos), points out the optional speed settings, walks
-/// through granting Accessibility (with live status), and finishes by marking onboarding
-/// complete.
+/// Spacey does (naming + switching demos), walks through granting Accessibility (with live
+/// status), and finishes by marking onboarding complete.
 struct OnboardingView: View {
     @ObservedObject var state: OnboardingState
     @ObservedObject var accessibility: AccessibilityMonitor
@@ -13,7 +12,6 @@ struct OnboardingView: View {
         case welcome
         case naming
         case switching
-        case speed
         case permission
     }
 
@@ -39,7 +37,6 @@ struct OnboardingView: View {
         case .welcome: welcomeStep
         case .naming: NamingStepView()
         case .switching: SwitchStepView()
-        case .speed: SpeedStepView()
         case .permission: permissionStep
         }
     }
