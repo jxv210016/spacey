@@ -83,7 +83,11 @@ struct SpaceRowView: View {
         } label: {
             ZStack {
                 Circle().fill(Color.primary.opacity(isHovering ? 0.12 : 0))
-                SpaceMark(color: color, symbol: name?.symbol, isCurrent: space.isCurrent)
+                SpaceMark(
+                    color: color,
+                    symbol: SpaceDisplay.markSymbol(for: space, name: name, suggestions: appearance.suggestIcons),
+                    isCurrent: space.isCurrent
+                )
             }
             .frame(width: 24, height: 24)
             .contentShape(Circle())
