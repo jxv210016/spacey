@@ -20,9 +20,14 @@ final class SettingsPresenter: NSObject, NSWindowDelegate {
         let window = NSWindow(contentViewController: controller)
         window.title = "\(AppInfo.name) Settings"
         window.styleMask = [.titled, .closable]
+        // Hide the (large, on Tahoe) title text so the tab bar is the compact top
+        // chrome instead of sitting under a tall title.
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.delegate = self
+        window.setContentSize(NSSize(width: 460, height: 300))
         window.center()
         window.makeKeyAndOrderFront(nil)
 

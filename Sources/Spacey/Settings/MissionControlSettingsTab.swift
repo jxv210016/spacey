@@ -4,28 +4,25 @@ import SwiftUI
 /// Mission Control, plus a short explanation.
 struct MissionControlSettingsTab: View {
     @ObservedObject var labeler: MissionControlLabeler
+    @ObservedObject var accessibility: AccessibilityMonitor
 
     var body: some View {
         Form {
             Section {
-                Toggle("Show names in Mission Control", isOn: $labeler.isEnabled)
-            } footer: {
-                Text(
-                    "When enabled, Spacey overlays your custom desktop names on the "
-                        + "Spaces bar whenever Mission Control is open."
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                LabeledContent {
+                    Toggle("", isOn: $labeler.isEnabled).labelsHidden()
+                } label: {
+                    Text("Show names in Mission Control")
+                    Text("Overlay your desktop names on the Spaces bar while Mission Control is open.")
+                }
             }
 
-            if labeler.isEnabled, !labeler.hasAccessibility {
+            if labeler.isEnabled, !accessibility.isTrusted {
                 Section {
                     Label(
-                        "Accessibility access is required for this feature. "
-                            + "Grant it in the Permissions tab.",
+                        "Accessibility access is required. Grant it in the Permissions tab.",
                         systemImage: "lock.shield"
                     )
-                    .font(.callout)
                     .foregroundStyle(.orange)
                 }
             }

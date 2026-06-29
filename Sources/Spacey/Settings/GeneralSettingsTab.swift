@@ -8,24 +8,26 @@ struct GeneralSettingsTab: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Launch Spacey at login", isOn: launchBinding)
+                LabeledContent {
+                    Toggle("", isOn: launchBinding).labelsHidden()
+                } label: {
+                    Text("Launch at login")
+                    Text("Start Spacey automatically and keep it in the menu bar.")
+                }
                 if let error = launchAtLogin.lastError {
                     Label(error, systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-            } footer: {
-                Text("Spacey will start automatically and stay in the menu bar after you log in.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section {
-                Button("Replay setup…", action: onReplaySetup)
-            } footer: {
-                Text("Walk through the welcome and permission steps again.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                LabeledContent {
+                    Button("Replay…", action: onReplaySetup)
+                } label: {
+                    Text("First-run setup")
+                    Text("Walk through the welcome and permission steps again.")
+                }
             }
         }
         .formStyle(.grouped)

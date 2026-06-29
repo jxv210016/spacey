@@ -18,7 +18,7 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(Tab.general)
 
-            MissionControlSettingsTab(labeler: model.labeler)
+            MissionControlSettingsTab(labeler: model.labeler, accessibility: model.accessibility)
                 .tabItem { Label("Mission Control", systemImage: "rectangle.3.group") }
                 .tag(Tab.missionControl)
 
@@ -30,6 +30,6 @@ struct SettingsView: View {
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(Tab.about)
         }
-        .frame(width: 480, height: 360)
+        .frame(width: 460, height: 300)
     }
 }

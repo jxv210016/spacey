@@ -13,24 +13,21 @@ struct PermissionsSettingsTab: View {
     var body: some View {
         Form {
             Section {
-                HStack(spacing: 10) {
-                    Image(systemName: hasAccessibility ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                        .foregroundStyle(hasAccessibility ? Color.green : Color.orange)
-                    Text(hasAccessibility ? "Accessibility access granted" : "Accessibility access needed")
-                        .fontWeight(.medium)
-                    Spacer()
-                    if !hasAccessibility {
-                        Button("Grant Accessibility…") { accessibility.requestAccess() }
+                LabeledContent {
+                    if hasAccessibility {
+                        Label("Granted", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .labelStyle(.titleAndIcon)
+                    } else {
+                        Button("Grant…") { accessibility.requestAccess() }
                     }
+                } label: {
+                    Text("Accessibility")
+                    Text(
+                        "Lets Spacey read Mission Control and switch Spaces. "
+                            + "It never reads your documents or keystrokes."
+                    )
                 }
-            } footer: {
-                Text(
-                    "Accessibility lets Spacey read Mission Control to place your names "
-                        + "correctly, and drive System Events to switch Spaces. Spacey never "
-                        + "reads your documents or keystrokes."
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
