@@ -209,7 +209,6 @@ no‑SIP design and the SIP boundary it stays on.
 
 Contributions are very welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the
 XcodeGen workflow, build/test/lint commands, and the project's design boundaries.
-By participating you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

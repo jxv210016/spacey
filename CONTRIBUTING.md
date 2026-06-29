@@ -107,5 +107,3 @@ Please use the issue templates. For Spaces / SkyLight / Mission Control bugs,
 **include your exact macOS version** (`sw_vers`) — these private APIs and the Mission
 Control accessibility tree vary across builds, and that detail is often the key to a
 fix.
-
-By contributing, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
