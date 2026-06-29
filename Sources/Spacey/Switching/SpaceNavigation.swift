@@ -12,6 +12,16 @@ enum SpaceNavigation {
         guard target >= 1, target <= count else { return nil }
         return target
     }
+
+    /// The single-step Mission Control arrow key code to move one Space *toward* `target`
+    /// from the current 1-based index: `124` (⌃→, move right) when the target is higher,
+    /// `123` (⌃←, move left) when lower, `nil` when already there. Direction is recomputed
+    /// each step so an overshoot self-corrects.
+    static func stepKeyCode(from current: Int, to target: Int) -> Int? {
+        if target > current { return 124 }
+        if target < current { return 123 }
+        return nil
+    }
 }
 
 /// Tracks the previously active Space so a hotkey can toggle back to it.

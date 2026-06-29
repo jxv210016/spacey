@@ -16,6 +16,20 @@ final class SpaceNavigationTests: XCTestCase {
         XCTAssertNil(SpaceNavigation.cycleTarget(currentIndex: 1, count: 3, delta: -1))
     }
 
+    func testStepKeyCodeRightWhenTargetHigher() {
+        XCTAssertEqual(SpaceNavigation.stepKeyCode(from: 1, to: 5), 124) // ⌃→
+        XCTAssertEqual(SpaceNavigation.stepKeyCode(from: 2, to: 3), 124)
+    }
+
+    func testStepKeyCodeLeftWhenTargetLower() {
+        XCTAssertEqual(SpaceNavigation.stepKeyCode(from: 5, to: 1), 123) // ⌃←
+        XCTAssertEqual(SpaceNavigation.stepKeyCode(from: 3, to: 2), 123)
+    }
+
+    func testStepKeyCodeNilWhenEqual() {
+        XCTAssertNil(SpaceNavigation.stepKeyCode(from: 4, to: 4))
+    }
+
     private func space(_ identity: String, current: Bool) -> Space {
         Space(
             uuid: identity,
