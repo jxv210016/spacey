@@ -1,21 +1,23 @@
 <!-- Thanks for contributing to Spacey! -->
 
-## What does this PR do?
+## Summary
 
+<!-- What does this PR change, and why? -->
 
-
-## Why?
-
-
-
-## Related issues
+## Linked issue
 
 <!-- e.g. Fixes #123 -->
 
+## Testing done
+
+<!-- How did you verify this change? Manual steps, new/updated tests, etc. -->
+
 ## Checklist
 
-- [ ] `swiftformat .` and `swiftlint` pass
-- [ ] `xcodebuild ... build test` passes locally
-- [ ] Any new private-API usage is isolated in `SkyLightBridge.swift` and `dlsym`-resolved
-- [ ] No feature requiring SIP to be disabled
+- [ ] Builds: `xcodebuild build -scheme Spacey -configuration Release -destination 'platform=macOS'`
+- [ ] `swiftlint --strict` is clean (zero warnings)
+- [ ] `swiftformat --lint .` is clean
+- [ ] Tests pass: `xcodebuild test -scheme Spacey -destination 'platform=macOS'`
+- [ ] No new external (SwiftPM) dependencies
+- [ ] Follows the no-SIP design (no SIP disable, no Dock/system-process injection)
 - [ ] Updated docs/tests where relevant

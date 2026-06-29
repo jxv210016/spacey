@@ -1,14 +1,53 @@
 name: Bug report
-description: Report something that isn't working
+description: Report something in Spacey that isn't working
 labels: [bug]
 body:
-  - type: textarea
-    id: what-happened
+  - type: markdown
     attributes:
-      label: What happened?
-      description: A clear description of the bug and what you expected instead.
+      value: |
+        Thanks for taking the time to file a bug! Spacey relies on private
+        SkyLight APIs that vary across macOS builds, so the version/hardware
+        details below are important for reproducing the issue.
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: "Output of `sw_vers -productVersion` (these private APIs vary across builds)."
+      placeholder: "e.g. 14.6.1"
     validations:
       required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac model / chip
+      description: Spacey supports Apple Silicon only.
+      placeholder: "e.g. MacBook Pro (M3 Pro)"
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Spacey version
+      description: Shown in the menu-bar menu / About window.
+      placeholder: "e.g. 0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: accessibility
+    attributes:
+      label: Is Accessibility permission granted to Spacey?
+      description: System Settings > Privacy & Security > Accessibility.
+      options:
+        - "Yes — Spacey is enabled in Accessibility"
+        - "No — Spacey is not enabled / was removed"
+        - "Not sure"
+    validations:
+      required: true
+
   - type: textarea
     id: repro
     attributes:
@@ -19,25 +58,31 @@ body:
         3. ...
     validations:
       required: true
-  - type: input
-    id: macos-version
+
+  - type: textarea
+    id: expected
     attributes:
-      label: macOS version
-      description: "Output of `sw_vers -productVersion` (these private APIs vary across builds)."
-      placeholder: "e.g. 14.6.1"
+      label: Expected behavior
+      description: What did you expect to happen?
     validations:
       required: true
-  - type: input
-    id: hardware
+
+  - type: textarea
+    id: actual
     attributes:
-      label: Mac model / chip
-      placeholder: "e.g. MacBook Pro M3"
+      label: Actual behavior
+      description: What actually happened instead?
     validations:
       required: true
-  - type: input
-    id: app-version
+
+  - type: textarea
+    id: logs
     attributes:
-      label: Spacey version
-      placeholder: "e.g. 0.1.0"
+      label: Logs and/or screenshots
+      description: |
+        Paste any relevant Console.app output or crash logs, and attach
+        screenshots/recordings if they help. Logs are automatically formatted,
+        so no need for code fences.
+      render: shell
     validations:
-      required: true
+      required: false

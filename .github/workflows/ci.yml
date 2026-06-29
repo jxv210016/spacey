@@ -1,3 +1,16 @@
+# Continuous Integration for Spacey
+# ---------------------------------------------------------------------------
+# Mirrors the real local build pipeline:
+#   1. brew install xcodegen swiftlint swiftformat
+#   2. xcodegen generate          (the .xcodeproj is gitignored / generated)
+#   3. swiftlint --strict         (repo is kept at ZERO warnings)
+#   4. swiftformat --lint .       (verify formatting without rewriting files)
+#   5. xcodebuild build (Release) + xcodebuild test
+#
+# Spacey is an Apple-Silicon, macOS 14+, non-sandboxed menu-bar app (target
+# "Spacey", bundle id com.getspacey.Spacey) with ZERO external SwiftPM
+# dependencies, so there is nothing to resolve/fetch and no signing certificate
+# is required on CI (CODE_SIGNING_ALLOWED=NO).
 name: CI
 
 on:
@@ -6,45 +19,99 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs on the same ref so the queue stays short.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-test:
-    name: Build & Test
+    name: Build, lint & test
+    # macos-15 provides Apple-Silicon runners with a recent Xcode toolchain.
+    # FALLBACK: if macos-15 is unavailable in this org, switch to macos-14
+    # (both ship an Xcode that can target macOS 14+).
     runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Install tools
+    env:
+      SCHEME: Spacey
+      DERIVED_DATA: DerivedData
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Select a recent Xcode. setup-xcode is the simplest robust option: it
+      # picks from toolchains already installed on the runner image and fails
+      # loudly if missing (clearer than `sudo xcode-select -s /Applications/
+      # Xcode_X.app`, whose exact path drifts between image releases).
+      # "latest-stable" tracks the newest non-beta Xcode on the image, so CI
+      # keeps working as GitHub rolls the runner forward.
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Cache DerivedData across runs to speed up incremental builds. Keyed on
+      # the XcodeGen spec + the source/test trees; falls back to the latest cache.
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DERIVED_DATA }}
+          key: ${{ runner.os }}-derived-${{ hashFiles('project.yml', 'Sources/**', 'Tests/**') }}
+          restore-keys: |
+            ${{ runner.os }}-derived-
+
+      # xcodegen / swiftlint / swiftformat ship as Homebrew formulae and are the
+      # exact tools used locally (see scripts/install-and-refresh-icon.sh).
+      - name: Install build tools
         run: brew install xcodegen swiftlint swiftformat
 
+      # Regenerate Spacey.xcodeproj from project.yml (the project is not committed).
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: SwiftFormat (lint)
+      # Lint gates run BEFORE the build so style/lint failures surface fast.
+      # --strict promotes warnings to errors; the repo is kept at zero warnings.
+      - name: SwiftLint (strict)
+        run: swiftlint --strict
+
+      # --lint checks formatting without modifying files; non-zero exit on drift.
+      - name: SwiftFormat (lint only)
         run: swiftformat --lint .
 
-      - name: SwiftLint
-        run: swiftlint
-
-      - name: Build & test
+      # Release build, unsigned (no certs on CI). -derivedDataPath keeps build
+      # products in a predictable, cacheable location.
+      - name: Build (Release)
         run: |
           set -o pipefail
-          xcodebuild \
-            -project Spacey.xcodeproj \
-            -scheme Spacey \
+          xcodebuild build \
+            -scheme "$SCHEME" \
+            -configuration Release \
             -destination 'platform=macOS' \
-            -enableCodeCoverage YES \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            clean build test
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Code coverage summary
+      # Run the unit-test bundle. The scheme's test config is Debug; let
+      # xcodebuild pick it. Reuses the same DerivedData path.
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme "$SCHEME" \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      # Surface a coverage summary in the run's job summary (best-effort).
+      - name: Coverage summary
         if: always()
         run: |
-          echo '### Code coverage' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          xcrun xccov view --report --only-targets TestResults.xcresult >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ -d TestResults.xcresult ]; then
+            {
+              echo '### Code coverage'
+              echo '```'
+              xcrun xccov view --report --only-targets TestResults.xcresult || true
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

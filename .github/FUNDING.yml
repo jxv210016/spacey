@@ -1,4 +1,9 @@
-# Optional — uncomment and fill in to enable the "Sponsor" button.
-# github: [your-username]
-# ko_fi: your-handle
-# open_collective: spacey
+# Funding sources for Spacey.
+# Uncomment and fill in a handle to enable the "Sponsor" button on the repo.
+# TODO(maintainer): replace the placeholders below with real handles, then uncomment.
+
+# GitHub Sponsors — your GitHub username (or a list of usernames):
+# github: [your-github-username]
+
+# Ko-fi — your Ko-fi page slug:
+# ko_fi: your-ko-fi-handle
