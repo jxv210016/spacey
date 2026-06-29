@@ -1,19 +1,24 @@
 import SwiftUI
 
 /// Mission Control preferences: the master toggle for showing custom Space names inside
-/// Mission Control, plus a short explanation.
+/// Mission Control, plus a short explanation and a permission reminder when needed.
 struct MissionControlSettingsTab: View {
     @ObservedObject var labeler: MissionControlLabeler
     @ObservedObject var accessibility: AccessibilityMonitor
 
     var body: some View {
-        Form {
+        SettingsPage(
+            title: "Mission Control",
+            subtitle: "Show your Space names inside Mission Control.",
+            systemImage: "rectangle.3.group.fill",
+            tint: .blue
+        ) {
             Section {
-                LabeledContent {
+                SettingsRow(
+                    title: "Show names in Mission Control",
+                    subtitle: "Overlay your desktop names on the Spaces bar while Mission Control is open."
+                ) {
                     Toggle("", isOn: $labeler.isEnabled).labelsHidden()
-                } label: {
-                    Text("Show names in Mission Control")
-                    Text("Overlay your desktop names on the Spaces bar while Mission Control is open.")
                 }
             }
 
@@ -27,6 +32,5 @@ struct MissionControlSettingsTab: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
 }

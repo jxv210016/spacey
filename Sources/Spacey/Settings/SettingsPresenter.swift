@@ -19,15 +19,16 @@ final class SettingsPresenter: NSObject, NSWindowDelegate {
         let controller = NSHostingController(rootView: SettingsView(model: model))
         let window = NSWindow(contentViewController: controller)
         window.title = "\(AppInfo.name) Settings"
-        window.styleMask = [.titled, .closable]
-        // Hide the (large, on Tahoe) title text so the tab bar is the compact top
-        // chrome instead of sitting under a tall title.
+        window.styleMask = [.titled, .closable, .resizable]
+        // The sidebar provides the navigation, so let it merge into a transparent
+        // titlebar for the unified System-Settings look.
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.delegate = self
-        window.setContentSize(NSSize(width: 460, height: 300))
+        window.setContentSize(NSSize(width: 740, height: 500))
+        window.contentMinSize = NSSize(width: 680, height: 460)
         window.center()
         window.makeKeyAndOrderFront(nil)
 

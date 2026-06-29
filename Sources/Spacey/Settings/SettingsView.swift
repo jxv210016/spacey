@@ -1,35 +1,89 @@
 import SwiftUI
 
-/// The app's Settings window, presented via the SwiftUI `Settings` scene and openable
-/// with ⌘, or the menu's "Settings…" item. A tabbed layout keeps each concern on its
-/// own pane, matching the standard macOS settings shape.
+/// The app's Settings window. A left-hand sidebar (`NavigationSplitView`) selects between
+/// panes shown on the right — the modern macOS System Settings shape — replacing the old
+/// top tab bar. The window is resizable; each pane fills the detail area responsively.
 struct SettingsView: View {
     @ObservedObject var model: AppModel
 
-    private enum Tab: Hashable {
-        case general, missionControl, permissions, about
+    /// The selectable panes, in sidebar order. Each carries its own label and tint so the
+    /// sidebar and the pane header stay in sync.
+    enum Pane: String, CaseIterable, Identifiable {
+        case general, appearance, missionControl, permissions, updates, about
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .general: return "General"
+            case .appearance: return "Appearance"
+            case .missionControl: return "Mission Control"
+            case .permissions: return "Permissions"
+            case .updates: return "Updates"
+            case .about: return "About"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .general: return "gearshape"
+            case .appearance: return "paintbrush"
+            case .missionControl: return "rectangle.3.group"
+            case .permissions: return "lock.shield"
+            case .updates: return "arrow.triangle.2.circlepath"
+            case .about: return "info.circle"
+            }
+        }
+
+        var tint: Color {
+            switch self {
+            case .general: return .gray
+            case .appearance: return .indigo
+            case .missionControl: return .blue
+            case .permissions: return .orange
+            case .updates: return .green
+            case .about: return .secondary
+            }
+        }
     }
 
-    @State private var selection: Tab = .general
+    @State private var selection: Pane? = .general
 
     var body: some View {
-        TabView(selection: $selection) {
-            GeneralSettingsTab(launchAtLogin: model.launchAtLogin, onReplaySetup: model.showOnboarding)
-                .tabItem { Label("General", systemImage: "gearshape") }
-                .tag(Tab.general)
-
-            MissionControlSettingsTab(labeler: model.labeler, accessibility: model.accessibility)
-                .tabItem { Label("Mission Control", systemImage: "rectangle.3.group") }
-                .tag(Tab.missionControl)
-
-            PermissionsSettingsTab(accessibility: model.accessibility)
-                .tabItem { Label("Permissions", systemImage: "lock.shield") }
-                .tag(Tab.permissions)
-
-            AboutSettingsTab(onReplaySetup: model.showOnboarding)
-                .tabItem { Label("About", systemImage: "info.circle") }
-                .tag(Tab.about)
+        NavigationSplitView {
+            List(Pane.allCases, selection: $selection) { pane in
+                Label {
+                    Text(pane.title)
+                } icon: {
+                    Image(systemName: pane.icon)
+                        .foregroundStyle(pane.tint)
+                }
+                .tag(pane)
+            }
+            .navigationSplitViewColumnWidth(min: 190, ideal: 204, max: 240)
+        } detail: {
+            detail
+                .frame(minWidth: 420, maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 460, height: 300)
+        .navigationSplitViewStyle(.balanced)
+        .frame(minWidth: 680, idealWidth: 740, minHeight: 460, idealHeight: 500)
+    }
+
+    @ViewBuilder
+    private var detail: some View {
+        switch selection ?? .general {
+        case .general:
+            GeneralSettingsTab(launchAtLogin: model.launchAtLogin, onReplaySetup: model.showOnboarding)
+        case .appearance:
+            AppearanceSettingsTab(appearance: model.appearance)
+        case .missionControl:
+            MissionControlSettingsTab(labeler: model.labeler, accessibility: model.accessibility)
+        case .permissions:
+            PermissionsSettingsTab(accessibility: model.accessibility)
+        case .updates:
+            UpdatesSettingsTab(updates: model.updates)
+        case .about:
+            AboutSettingsTab(onReplaySetup: model.showOnboarding)
+        }
     }
 }

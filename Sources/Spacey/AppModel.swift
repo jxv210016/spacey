@@ -10,6 +10,8 @@ final class AppModel: ObservableObject {
     let labeler: MissionControlLabeler
     let launchAtLogin: LaunchAtLogin
     let onboarding: OnboardingState
+    let appearance: AppearanceSettings
+    let updates: UpdateChecker
     let accessibility = AccessibilityMonitor()
 
     private let onboardingPresenter = OnboardingPresenter()
@@ -24,10 +26,16 @@ final class AppModel: ObservableObject {
         labeler = MissionControlLabeler(store: spaces, names: names)
         launchAtLogin = LaunchAtLogin()
         onboarding = OnboardingState()
+        appearance = AppearanceSettings()
+        let updates = UpdateChecker()
+        self.updates = updates
 
         labeler.start()
         accessibility.start()
         AppActivation.observeWindowClosures()
+
+        // Check for a newer release in the background on launch (if the user opted in).
+        Task { await updates.checkAutomaticallyIfEnabled() }
 
         // When Accessibility is granted at runtime, re-arm the Mission Control
         // observer so labels work immediately, without relaunching.

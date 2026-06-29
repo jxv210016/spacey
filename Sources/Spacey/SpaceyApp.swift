@@ -14,7 +14,7 @@ struct SpaceyApp: App {
                 onOpenSettings: { model.showSettings() }
             )
         } label: {
-            MenuBarLabel(store: model.spaces, names: model.names)
+            MenuBarLabel(store: model.spaces, names: model.names, appearance: model.appearance)
                 // The menu-bar label renders at launch, giving us a reliable hook to
                 // present first-run onboarding once the app is up.
                 .onAppear { model.presentOnboardingIfNeeded() }

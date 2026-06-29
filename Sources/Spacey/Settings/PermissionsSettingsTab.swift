@@ -11,9 +11,18 @@ struct PermissionsSettingsTab: View {
     }
 
     var body: some View {
-        Form {
+        SettingsPage(
+            title: "Permissions",
+            subtitle: "Access Spacey needs to do its job.",
+            systemImage: "lock.shield.fill",
+            tint: .orange
+        ) {
             Section {
-                LabeledContent {
+                SettingsRow(
+                    title: "Accessibility",
+                    subtitle: "Lets Spacey read Mission Control and switch Spaces. "
+                        + "It never reads your documents or keystrokes."
+                ) {
                     if hasAccessibility {
                         Label("Granted", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
@@ -21,15 +30,8 @@ struct PermissionsSettingsTab: View {
                     } else {
                         Button("Grant…") { accessibility.requestAccess() }
                     }
-                } label: {
-                    Text("Accessibility")
-                    Text(
-                        "Lets Spacey read Mission Control and switch Spaces. "
-                            + "It never reads your documents or keystrokes."
-                    )
                 }
             }
         }
-        .formStyle(.grouped)
     }
 }

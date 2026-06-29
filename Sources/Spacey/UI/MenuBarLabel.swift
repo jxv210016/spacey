@@ -6,14 +6,20 @@ import SwiftUI
 struct MenuBarLabel: View {
     @ObservedObject var store: SpacesStore
     @ObservedObject var names: SpaceNamesStore
+    @ObservedObject var appearance: AppearanceSettings
 
     var body: some View {
         let current = store.currentSpace
         let record = current.flatMap { names.name(for: $0.identity) }
+        let style = appearance.menuBarStyle
 
         HStack(spacing: 4) {
-            Image(systemName: glyph(for: record))
-            Text(SpaceDisplay.menuBarTitle(for: current, name: record))
+            if style.showsIcon {
+                Image(systemName: glyph(for: record))
+            }
+            if style.showsName {
+                Text(SpaceDisplay.menuBarTitle(for: current, name: record))
+            }
         }
     }
 

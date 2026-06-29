@@ -17,7 +17,15 @@ enum AppInfo {
 
     static let tagline = "Name your desktops, switch by name, and see those names in Mission Control."
 
-    static let repositoryURL = URL(string: "https://github.com/getspacey/spacey")
+    static let repositoryURL = URL(string: "https://github.com/jxv210016/spacey")
+
+    /// GitHub "latest release" API endpoint, used by `UpdateChecker`.
+    static let latestReleaseAPIURL = URL(string: "https://api.github.com/repos/jxv210016/spacey/releases/latest")
+
+    /// Human-facing releases page, linked from the Updates pane.
+    static let releasesPageURL = URL(string: "https://github.com/jxv210016/spacey/releases")
 
     static let license = "MIT License"
+
+    static let copyright = "© 2026 Spacey contributors"
 }

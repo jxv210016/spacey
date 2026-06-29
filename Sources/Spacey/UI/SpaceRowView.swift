@@ -20,6 +20,8 @@ struct SpaceRowView: View {
             nameView
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
+                // Double-click the name to rename; a single click switches Spaces.
+                .onTapGesture(count: 2) { startEditing() }
                 .onTapGesture { if !isEditing { onActivate() } }
             trailing
         }
@@ -29,7 +31,7 @@ struct SpaceRowView: View {
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
         }
-        .help(space.isCurrent ? "Current Space" : "Switch to this Space")
+        .help(space.isCurrent ? "Current Space · double-click to rename" : "Switch to this Space · double-click to rename")
         .onAppear { syncDraft() }
         .onChange(of: name?.label) { _, _ in if !isEditing { syncDraft() } }
     }

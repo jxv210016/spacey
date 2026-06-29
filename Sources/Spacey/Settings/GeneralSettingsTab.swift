@@ -6,13 +6,18 @@ struct GeneralSettingsTab: View {
     let onReplaySetup: () -> Void
 
     var body: some View {
-        Form {
+        SettingsPage(
+            title: "General",
+            subtitle: "How Spacey starts and behaves.",
+            systemImage: "gearshape.fill",
+            tint: .gray
+        ) {
             Section {
-                LabeledContent {
+                SettingsRow(
+                    title: "Launch at login",
+                    subtitle: "Start Spacey automatically and keep it in the menu bar."
+                ) {
                     Toggle("", isOn: launchBinding).labelsHidden()
-                } label: {
-                    Text("Launch at login")
-                    Text("Start Spacey automatically and keep it in the menu bar.")
                 }
                 if let error = launchAtLogin.lastError {
                     Label(error, systemImage: "exclamationmark.triangle")
@@ -22,15 +27,14 @@ struct GeneralSettingsTab: View {
             }
 
             Section {
-                LabeledContent {
+                SettingsRow(
+                    title: "First-run setup",
+                    subtitle: "Walk through the welcome and permission steps again."
+                ) {
                     Button("Replay…", action: onReplaySetup)
-                } label: {
-                    Text("First-run setup")
-                    Text("Walk through the welcome and permission steps again.")
                 }
             }
         }
-        .formStyle(.grouped)
         .onAppear { launchAtLogin.refresh() }
     }
 
