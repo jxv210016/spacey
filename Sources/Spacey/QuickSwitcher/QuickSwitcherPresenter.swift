@@ -160,6 +160,10 @@ final class QuickSwitcherPresenter: NSObject, NSWindowDelegate {
               let display = store.displays.first(where: { $0.displayID == entry.displayID }),
               let current = display.spaces.first(where: { $0.isCurrent })
         else { return }
-        SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: entry.indexOnDisplay)
+        SpaceSwitcher.move(
+            toIndex: entry.indexOnDisplay,
+            fromIndex: current.indexOnDisplay,
+            displayCount: store.displays.count
+        )
     }
 }

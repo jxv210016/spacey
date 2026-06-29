@@ -91,7 +91,7 @@ final class AppModel: ObservableObject {
               number >= 1, number <= display.spaces.count,
               number != current.indexOnDisplay
         else { return }
-        SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: number)
+        SpaceSwitcher.move(toIndex: number, fromIndex: current.indexOnDisplay, displayCount: spaces.displays.count)
     }
 
     /// Step one Space left/right on the active display (no wrap).
@@ -104,7 +104,7 @@ final class AppModel: ObservableObject {
                   delta: delta
               )
         else { return }
-        SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: target)
+        SpaceSwitcher.move(toIndex: target, fromIndex: current.indexOnDisplay, displayCount: spaces.displays.count)
     }
 
     /// Toggle back to the previously active Space, re-resolving its current index.
@@ -115,7 +115,11 @@ final class AppModel: ObservableObject {
               let display = spaces.displays.first(where: { $0.displayID == target.displayID }),
               let current = display.spaces.first(where: { $0.isCurrent })
         else { return }
-        SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: target.indexOnDisplay)
+        SpaceSwitcher.move(
+            toIndex: target.indexOnDisplay,
+            fromIndex: current.indexOnDisplay,
+            displayCount: spaces.displays.count
+        )
     }
 
     /// Show onboarding on first launch only.

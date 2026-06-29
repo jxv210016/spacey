@@ -187,7 +187,11 @@ struct MenuContent: View {
               let display = store.displays.first(where: { $0.displayID == space.displayID }),
               let current = display.spaces.first(where: { $0.isCurrent })
         else { return }
-        SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: space.indexOnDisplay)
+        SpaceSwitcher.move(
+            toIndex: space.indexOnDisplay,
+            fromIndex: current.indexOnDisplay,
+            displayCount: store.displays.count
+        )
     }
 }
 
