@@ -93,7 +93,8 @@ final class UpdateChecker: ObservableObject {
             }
 
             if latest > current {
-                status = .updateAvailable(version: latest.raw, url: release.downloadURL)
+                // Use `normalized` (not `raw`) so the pane doesn't render "Version v0.2.0".
+                status = .updateAvailable(version: latest.normalized, url: release.downloadURL)
             } else {
                 status = .upToDate
             }
@@ -101,38 +102,40 @@ final class UpdateChecker: ObservableObject {
             status = .failed(error.localizedDescription)
         }
     }
+}
 
-    // MARK: - Wire format
+// MARK: - Wire format
 
-    /// The subset of GitHub's release JSON we care about.
-    private struct Release: Decodable {
-        let tagName: String
-        let htmlURL: URL
-        let assets: [Asset]
+/// The subset of GitHub's release JSON we care about. Hoisted to file scope (rather
+/// than nested in `UpdateChecker`) to keep the type nesting shallow.
+private struct Release: Decodable {
+    let tagName: String
+    let htmlURL: URL
+    let assets: [ReleaseAsset]
 
-        struct Asset: Decodable {
-            let name: String
-            let browserDownloadURL: URL
+    enum CodingKeys: String, CodingKey {
+        case tagName = "tag_name"
+        case htmlURL = "html_url"
+        case assets
+    }
 
-            enum CodingKeys: String, CodingKey {
-                case name
-                case browserDownloadURL = "browser_download_url"
-            }
+    /// Prefer a downloadable disk image / archive; fall back to the release page.
+    var downloadURL: URL {
+        let installable = assets.first { asset in
+            let lower = asset.name.lowercased()
+            return lower.hasSuffix(".dmg") || lower.hasSuffix(".zip") || lower.hasSuffix(".pkg")
         }
+        return installable?.browserDownloadURL ?? htmlURL
+    }
+}
 
-        enum CodingKeys: String, CodingKey {
-            case tagName = "tag_name"
-            case htmlURL = "html_url"
-            case assets
-        }
+/// A single downloadable artifact attached to a GitHub release.
+private struct ReleaseAsset: Decodable {
+    let name: String
+    let browserDownloadURL: URL
 
-        /// Prefer a downloadable disk image / archive; fall back to the release page.
-        var downloadURL: URL {
-            let installable = assets.first { asset in
-                let lower = asset.name.lowercased()
-                return lower.hasSuffix(".dmg") || lower.hasSuffix(".zip") || lower.hasSuffix(".pkg")
-            }
-            return installable?.browserDownloadURL ?? htmlURL
-        }
+    enum CodingKeys: String, CodingKey {
+        case name
+        case browserDownloadURL = "browser_download_url"
     }
 }

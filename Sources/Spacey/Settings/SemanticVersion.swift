@@ -45,5 +45,10 @@ struct SemanticVersion: Comparable, CustomStringConvertible {
         index < components.count ? components[index] : 0
     }
 
+    /// A clean, display-ready version string built from the numeric components
+    /// (e.g. `0.2.0`). Unlike `raw`, it drops any leading `v`/`V` and metadata, so
+    /// callers can prefix their own label without producing "v" duplication.
+    var normalized: String { components.map(String.init).joined(separator: ".") }
+
     var description: String { raw }
 }

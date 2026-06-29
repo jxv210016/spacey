@@ -15,7 +15,9 @@ struct UpdatesSettingsTab: View {
         ) {
             Section {
                 SettingsRow(title: "Spacey \(AppInfo.version)", subtitle: statusText) {
-                    Button(action: { Task { await updates.checkNow() } }) {
+                    Button {
+                        Task { await updates.checkNow() }
+                    } label: {
                         if updates.status == .checking {
                             ProgressView().controlSize(.small)
                         } else {
