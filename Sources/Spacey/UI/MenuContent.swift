@@ -16,25 +16,12 @@ struct MenuContent: View {
             Divider()
             content
             if store.isAvailable {
-                addDesktopButton
+                AddDesktopButton()
             }
             Divider()
             footer
         }
         .frame(width: 300)
-    }
-
-    private var addDesktopButton: some View {
-        Button(action: SpaceActions.addDesktop) {
-            Label("Add Desktop", systemImage: "plus.circle")
-                .font(.callout)
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 7)
-        .help("Open Mission Control and add a desktop")
     }
 
     // MARK: Header
@@ -156,7 +143,7 @@ struct MenuContent: View {
             Divider()
 
             HStack(spacing: 12) {
-                Text("Spacey \(appVersion)")
+                Text("Spacey")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                 Spacer()
@@ -194,10 +181,6 @@ struct MenuContent: View {
         .padding(.bottom, 9)
     }
 
-    private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1"
-    }
-
     /// Switch to `space` by stepping from the current Space on its display.
     private func activate(_ space: Space) {
         guard !space.isCurrent,
@@ -205,5 +188,54 @@ struct MenuContent: View {
               let current = display.spaces.first(where: { $0.isCurrent })
         else { return }
         SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: space.indexOnDisplay)
+    }
+}
+
+/// "Add Desktop" styled as a continuation of the Spaces list: the plus glyph sits in the
+/// same column as the rows' color dots and the whole row picks up the same hover
+/// highlight, so it reads as one more entry rather than a detached button.
+private struct AddDesktopButton: View {
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: SpaceActions.addDesktop) {
+            HStack(spacing: 10) {
+                mark
+                Text("Add Desktop")
+                    .font(.system(size: 13))
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(background)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 6)
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
+        }
+        .help("Open Mission Control and add a desktop")
+    }
+
+    /// Mirrors the rows' no-color dot (an outlined circle) with a plus inside.
+    private var mark: some View {
+        Image(systemName: "plus")
+            .font(.system(size: 9, weight: .bold))
+            .frame(width: 14, height: 14)
+            .background(Circle().strokeBorder(Color.secondary.opacity(0.45), lineWidth: 1))
+            .frame(width: 24, height: 24)
+    }
+
+    @ViewBuilder
+    private var background: some View {
+        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        if isHovering {
+            shape.fill(Color.primary.opacity(0.07))
+        } else {
+            shape.fill(.clear)
+        }
     }
 }
