@@ -112,17 +112,29 @@ struct SpaceThumbnail: Equatable {
 /// Only returns results while Mission Control is on screen.
 enum SpacesBarReader {
     static func read() -> [SpaceThumbnail] {
-        guard let dock = AXReader.dock(),
-              let bar = AXReader.firstDescendant(of: dock, maxDepth: 24, where: {
-                  AXReader.role($0) == "AXGroup" && AXReader.title($0) == "Spaces Bar"
-              }),
-              let list = AXReader.children(bar).first(where: { AXReader.role($0) == "AXList" })
-        else { return [] }
-
+        guard let list = spacesList() else { return [] }
         let buttons = AXReader.children(list).filter { AXReader.role($0) == "AXButton" }
         return buttons.enumerated().compactMap { index, button in
             guard let frame = AXReader.frame(button) else { return nil }
             return SpaceThumbnail(index: index + 1, title: AXReader.title(button), frame: frame)
         }
+    }
+
+    /// On-screen frame of the "Spaces Bar" group. When the bar is *collapsed*, the
+    /// individual pill buttons report off-screen Y but this group frame stays on-screen
+    /// (the top strip), so it's the anchor for positioning collapsed labels.
+    static func barFrame() -> CGRect? {
+        AXReader.dock().flatMap(spacesBar).flatMap(AXReader.frame)
+    }
+
+    private static func spacesBar(in dock: AXUIElement) -> AXUIElement? {
+        AXReader.firstDescendant(of: dock, maxDepth: 24) {
+            AXReader.role($0) == "AXGroup" && AXReader.title($0) == "Spaces Bar"
+        }
+    }
+
+    private static func spacesList() -> AXUIElement? {
+        guard let dock = AXReader.dock(), let bar = spacesBar(in: dock) else { return nil }
+        return AXReader.children(bar).first { AXReader.role($0) == "AXList" }
     }
 }

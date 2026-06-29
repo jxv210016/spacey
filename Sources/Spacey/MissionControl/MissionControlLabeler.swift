@@ -85,14 +85,35 @@ final class MissionControlLabeler: ObservableObject {
         guard isEnabled, let screen = NSScreen.main else { return }
         let thumbnails = SpacesBarReader.read()
         let spaces = store.displays.first?.spaces ?? store.allSpaces
+        let positioned = positionedThumbnails(thumbnails, screen: screen)
         let labels = OverlayMapping.labels(
-            thumbnails: thumbnails,
+            thumbnails: positioned,
             spaces: spaces,
             name: { [names] identity in names.name(for: identity) }
         )
-        // Only draw labels whose thumbnail is actually on screen — i.e. when the
-        // Spaces Bar is expanded. Collapsed thumbnails sit at negative Y.
-        let visible = labels.filter { $0.frame.midY > 0 && $0.frame.midY < screen.frame.height }
-        overlay.show(labels: visible, on: screen)
+        overlay.show(labels: labels, on: screen)
+    }
+
+    /// Resolve thumbnail frames to on-screen positions for the current Spaces Bar state.
+    ///
+    /// - Expanded: the pill/thumbnail frames are already correct; keep the ones on screen.
+    /// - Collapsed: the pills report off-screen (negative) Y, but their X is correct and
+    ///   the bar *group* sits on screen as a short top strip. Rebuild each frame from the
+    ///   pill's X dropped into that strip so labels appear under the collapsed pills.
+    /// - Otherwise (bar off screen / mid-animation): draw nothing.
+    private func positionedThumbnails(_ thumbnails: [SpaceThumbnail], screen: NSScreen) -> [SpaceThumbnail] {
+        func onScreen(_ midY: CGFloat) -> Bool { midY > 0 && midY < screen.frame.height }
+
+        let expanded = thumbnails.filter { onScreen($0.frame.midY) }
+        if !expanded.isEmpty { return expanded }
+
+        guard let bar = SpacesBarReader.barFrame(), onScreen(bar.midY) else { return [] }
+        return thumbnails.map { thumbnail in
+            SpaceThumbnail(
+                index: thumbnail.index,
+                title: thumbnail.title,
+                frame: CGRect(x: thumbnail.frame.minX, y: bar.minY, width: thumbnail.frame.width, height: bar.height)
+            )
+        }
     }
 }
