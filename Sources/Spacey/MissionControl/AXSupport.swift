@@ -32,6 +32,23 @@ enum AXReader {
         string(element, kAXTitleAttribute as String)
     }
 
+    /// AX description (`AXDescription`) — where the add-desktop button keeps its label.
+    static func describe(_ element: AXUIElement) -> String {
+        string(element, kAXDescriptionAttribute as String)
+    }
+
+    static func help(_ element: AXUIElement) -> String {
+        string(element, kAXHelpAttribute as String)
+    }
+
+    /// Title + description + help, lowercased — a label search that doesn't depend on
+    /// which attribute the OS chose to populate.
+    static func label(_ element: AXUIElement) -> String {
+        [title(element), describe(element), help(element)]
+            .joined(separator: " ")
+            .lowercased()
+    }
+
     static func children(_ element: AXUIElement) -> [AXUIElement] {
         attribute(element, kAXChildrenAttribute as String) as? [AXUIElement] ?? []
     }

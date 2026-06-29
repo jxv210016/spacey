@@ -8,7 +8,7 @@ enum SpaceActions {
     /// Open Mission Control and press its "add desktop" button.
     static func addDesktop() {
         NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Mission Control.app"))
-        pressAddButton(attemptsRemaining: 6)
+        pressAddButton(attemptsRemaining: 10)
     }
 
     /// Mission Control's AX tree appears a beat after it opens, so retry a few times.
@@ -20,10 +20,16 @@ enum SpaceActions {
         }
     }
 
+    /// The add-desktop control is an `AXButton` whose label ("add desktop") may live in
+    /// the title, description, or help depending on the macOS version, so match on all
+    /// of them. As a fallback, accept any button whose label mentions "desktop".
     private static func addButton() -> AXUIElement? {
         guard let dock = AXReader.dock() else { return nil }
-        return AXReader.firstDescendant(of: dock, maxDepth: 24) {
-            AXReader.role($0) == "AXButton" && AXReader.title($0).lowercased().contains("add desktop")
+        return AXReader.firstDescendant(of: dock, maxDepth: 28) {
+            guard AXReader.role($0) == "AXButton" else { return false }
+            let label = AXReader.label($0)
+            return label.contains("add desktop")
+                || (label.contains("add") && label.contains("desktop"))
         }
     }
 }
