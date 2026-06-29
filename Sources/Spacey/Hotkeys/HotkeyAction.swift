@@ -12,7 +12,7 @@ enum HotkeyAction: String, CaseIterable, Identifiable, Codable {
     case cycleNext
     /// Move one Space to the left on the active display.
     case cyclePrevious
-    /// Jump straight to the Nth Space on the active display (⌃⌥1…⌃⌥9 by default).
+    /// Jump straight to the Nth Space on the active display (⌃1…⌃9 by default).
     case jumpToDesktop1, jumpToDesktop2, jumpToDesktop3, jumpToDesktop4, jumpToDesktop5
     case jumpToDesktop6, jumpToDesktop7, jumpToDesktop8, jumpToDesktop9
 
@@ -59,11 +59,12 @@ enum HotkeyAction: String, CaseIterable, Identifiable, Codable {
     }
 
     /// The default chord, if any. The Quick Switcher ships as ⌥Space and the nine
-    /// positional jumps as ⌃⌥1…⌃⌥9; the relative-cycle actions start unbound so the
-    /// user opts in.
+    /// positional jumps as ⌃1…⌃9; the relative-cycle actions start unbound so the
+    /// user opts in. (⌃N mirrors macOS's own "Switch to Desktop N" chord, which is off by
+    /// default — so Spacey owns it cleanly unless the user also turns the system one on.)
     var defaultCombo: KeyCombo? {
         if let number = targetDesktopNumber {
-            return KeyCombo(keyCode: Self.digitKeyCode(number), modifiers: [.control, .option])
+            return KeyCombo(keyCode: Self.digitKeyCode(number), modifiers: .control)
         }
         switch self {
         case .toggleQuickSwitcher: return KeyCombo(keyCode: UInt16(kVK_Space), modifiers: .option)

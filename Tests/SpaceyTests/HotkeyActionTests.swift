@@ -16,16 +16,16 @@ final class HotkeyActionTests: XCTestCase {
         XCTAssertEqual(Set(jumps.compactMap { $0.targetDesktopNumber }), Set(1 ... 9))
     }
 
-    func testJumpDefaultsAreControlOptionDigit() throws {
+    func testJumpDefaultsAreControlDigit() throws {
         let combo = try XCTUnwrap(HotkeyAction.jumpToDesktop1.defaultCombo)
         XCTAssertEqual(combo.keyCode, UInt16(kVK_ANSI_1))
         XCTAssertTrue(combo.modifierFlags.contains(.control))
-        XCTAssertTrue(combo.modifierFlags.contains(.option))
+        XCTAssertFalse(combo.modifierFlags.contains(.option))
         XCTAssertFalse(combo.modifierFlags.contains(.command))
 
         let combo3 = try XCTUnwrap(HotkeyAction.jumpToDesktop3.defaultCombo)
         XCTAssertEqual(combo3.keyCode, UInt16(kVK_ANSI_3))
-        XCTAssertEqual(combo3.displayString, "⌃⌥3")
+        XCTAssertEqual(combo3.displayString, "⌃3")
     }
 
     func testDefaultBindingsSeedAllNineJumpsPlusQuickSwitcher() {
