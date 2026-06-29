@@ -65,7 +65,10 @@ final class SpaceDisplayTests: XCTestCase {
     }
 
     func testColorHexPrefersExplicitThenSuggestionThenNil() {
-        XCTAssertEqual(SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Mail", colorHex: "#FFFFFF")), "#FFFFFF")
+        XCTAssertEqual(
+            SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Mail", colorHex: "#FFFFFF")),
+            "#FFFFFF"
+        )
         XCTAssertEqual(SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Mail")), "#0A84FF")
         XCTAssertNil(SpaceDisplay.colorHex(for: space(), name: SpaceName(label: "Zphqx")))
         XCTAssertNil(SpaceDisplay.colorHex(for: space(), name: nil))

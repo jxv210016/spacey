@@ -24,7 +24,12 @@ final class MissionControlLabeler: ObservableObject {
     private var observer: MissionControlObserver?
     private var pollTimer: Timer?
 
-    init(store: SpacesStore, names: SpaceNamesStore, appearance: AppearanceSettings, defaults: UserDefaults = .standard) {
+    init(
+        store: SpacesStore,
+        names: SpaceNamesStore,
+        appearance: AppearanceSettings,
+        defaults: UserDefaults = .standard
+    ) {
         self.store = store
         self.names = names
         self.appearance = appearance

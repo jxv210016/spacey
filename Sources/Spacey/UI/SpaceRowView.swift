@@ -108,7 +108,9 @@ struct SpaceRowView: View {
         .popover(isPresented: $showIconPicker, arrowEdge: .bottom) {
             IconPickerPopover(
                 selected: name?.symbol,
-                suggestion: appearance.suggestIcons ? (name?.trimmedLabel).flatMap(IconSuggestion.symbol(forLabel:)) : nil
+                suggestion: appearance.suggestIcons
+                    ? (name?.trimmedLabel).flatMap(IconSuggestion.symbol(forLabel:))
+                    : nil
             ) { symbol in
                 names.setSymbol(symbol, for: space.identity)
                 showIconPicker = false

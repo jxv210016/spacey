@@ -73,7 +73,12 @@ struct MenuContent: View {
                         displayHeader(display)
                     }
                     ForEach(display.spaces) { space in
-                        SpaceRowView(space: space, names: names, appearance: appearance, onActivate: { activate(space) })
+                        SpaceRowView(
+                            space: space,
+                            names: names,
+                            appearance: appearance,
+                            onActivate: { activate(space) }
+                        )
                     }
                 }
             }
