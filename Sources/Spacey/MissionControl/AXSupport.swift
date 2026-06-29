@@ -74,6 +74,12 @@ enum AXReader {
         }
         return nil
     }
+
+    /// Perform the press (default) action on an element.
+    @discardableResult
+    static func press(_ element: AXUIElement) -> Bool {
+        AXUIElementPerformAction(element, kAXPressAction as CFString) == .success
+    }
 }
 
 /// One Space thumbnail in the Mission Control "Spaces Bar".

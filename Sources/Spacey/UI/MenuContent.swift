@@ -15,10 +15,26 @@ struct MenuContent: View {
             header
             Divider()
             content
+            if store.isAvailable {
+                addDesktopButton
+            }
             Divider()
             footer
         }
         .frame(width: 300)
+    }
+
+    private var addDesktopButton: some View {
+        Button(action: SpaceActions.addDesktop) {
+            Label("Add Desktop", systemImage: "plus.circle")
+                .font(.callout)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 7)
+        .help("Open Mission Control and add a desktop")
     }
 
     // MARK: Header
