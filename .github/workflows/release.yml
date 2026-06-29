@@ -1,122 +1,50 @@
-# Release workflow — builds, signs, notarizes, and publishes a Spacey DMG.
+# Release workflow — builds Spacey, zips the .app, and attaches it to a GitHub
+# Release on tag push. NO code-signing or notarization, so NO secrets are required.
 #
-# WHY TAG-GATED (security): this workflow is the ONLY place signing/notarization
-# secrets are used. It triggers exclusively on pushing a version tag (`v*`).
-# GitHub never exposes repository secrets to workflows from forked-PR events, and
-# pull requests cannot create tags on the base repo, so fork contributors can
-# never reach these secrets. Only a maintainer pushing a tag to this repo can.
-# (See docs/PLAN.md §7 — "gate signing to tags".)
+# The published build is unsigned (ad-hoc), so after downloading users clear the
+# Gatekeeper quarantine with `xattr -dr com.apple.quarantine` (see the README and
+# docs/RELEASING.md). The in-app UpdateChecker reads the latest release tag and links
+# to the attached Spacey.zip asset.
 #
-# This file is intentionally heavily commented and is expected to be unrunnable
-# until the maintainer configures the secrets listed under "Required secrets"
-# below. See docs/RELEASING.md for the full setup + cut-a-release guide.
-#
-# Required secrets (configure in repo Settings → Secrets and variables → Actions):
-#   DEVELOPER_ID_P12_BASE64   — Developer ID Application cert + private key,
-#                               exported as a .p12 and base64-encoded.
-#   DEVELOPER_ID_P12_PASSWORD — password protecting that .p12.
-#   KEYCHAIN_PASSWORD         — any throwaway password for the temporary CI keychain.
-#   AC_API_KEY_ID             — App Store Connect API key ID (notarytool auth).
-#   AC_API_ISSUER_ID          — App Store Connect API issuer ID.
-#   AC_API_KEY_BASE64         — the App Store Connect API .p8 key, base64-encoded.
-
+# Tag-gated so it only runs for a maintainer pushing `vX.Y.Z` — never on branch pushes
+# or PRs.
 name: Release
 
 on:
   push:
     tags:
-      - "v*" # e.g. v0.1.0, v1.2.3 — never runs on branch pushes or PRs.
+      - "v*" # e.g. v0.1.0, v1.2.3
 
-# Least-privilege: only the token scope needed to create the GitHub Release.
 permissions:
-  contents: write
+  contents: write # needed to create the GitHub Release
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: false # never cancel a half-finished signed release
+  cancel-in-progress: false
 
 jobs:
   release:
-    name: Build, sign, notarize & publish
+    name: Build & publish zip
     runs-on: macos-15
     env:
       APP_NAME: Spacey
       SCHEME: Spacey
       CONFIGURATION: Release
-      # Developer ID identity to codesign with. Resolved from the imported cert at
-      # runtime, but the common-name prefix is fixed for Developer ID Application.
-      SIGN_IDENTITY: "Developer ID Application"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Pin a known-good Xcode so the toolchain (and notarytool) is predictable.
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_16.app
 
-      # XcodeGen turns project.yml into the (gitignored) .xcodeproj. create-dmg is
-      # NOT installed: we package with scripts/make-dmg.sh to avoid an extra dep.
       - name: Install XcodeGen
         run: brew install xcodegen
 
       - name: Generate Xcode project
         run: xcodegen generate
 
-      # ------------------------------------------------------------------
-      # Import the Developer ID Application certificate into a TEMPORARY
-      # keychain. The keychain is created fresh, used only for this job, and
-      # deleted in the always() cleanup step at the end — the cert never
-      # touches the runner's default login keychain.
-      # ------------------------------------------------------------------
-      - name: Import Developer ID certificate
-        env:
-          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
-          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          set -euo pipefail
-
-          # Work in the runner temp dir so artifacts vanish with the runner.
-          CERT_PATH="$RUNNER_TEMP/developer_id.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/spacey-signing.keychain-db"
-
-          # Decode the base64 secret to a .p12 on disk (never echoed).
-          echo -n "$DEVELOPER_ID_P12_BASE64" | base64 --decode -o "$CERT_PATH"
-
-          # Create and unlock a throwaway keychain dedicated to this job.
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH" # auto-lock after 6h
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
-          # Import the cert + private key; allow codesign/productsign to use it.
-          security import "$CERT_PATH" \
-            -P "$DEVELOPER_ID_P12_PASSWORD" \
-            -A -t cert -f pkcs12 \
-            -k "$KEYCHAIN_PATH"
-
-          # Allow the codesign tool to access the key without an interactive prompt.
-          security set-key-partition-list \
-            -S apple-tool:,apple:,codesign: \
-            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
-          # Put our keychain first on the search list so codesign finds the identity.
-          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed s/\"//g)
-
-          # Resolve the exact identity name and export it for later steps.
-          IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
-            | grep "Developer ID Application" | head -1 | sed -E 's/.*"(.*)".*/\1/')"
-          if [ -z "$IDENTITY" ]; then
-            echo "ERROR: no 'Developer ID Application' identity found in the keychain." >&2
-            exit 1
-          fi
-          echo "Found signing identity (name hidden in logs)."
-          echo "SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
-          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
-
-      # Build an unsigned Release first; we codesign explicitly afterwards so we
-      # control the identity, hardened runtime, and entitlements precisely.
-      - name: Build (Release)
+      - name: Build (Release, unsigned)
         run: |
           set -euo pipefail
           xcodebuild \
@@ -128,7 +56,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
-      - name: Locate built app
+      - name: Package zip
+        id: package
         run: |
           set -euo pipefail
           APP_PATH="build/Build/Products/${CONFIGURATION}/${APP_NAME}.app"
@@ -136,93 +65,12 @@ jobs:
             echo "ERROR: built app not found at $APP_PATH" >&2
             exit 1
           fi
-          echo "APP_PATH=$PWD/$APP_PATH" >> "$GITHUB_ENV"
+          VERSION="$(/usr/bin/defaults read "$PWD/$APP_PATH/Contents/Info" CFBundleShortVersionString 2>/dev/null || echo 0.0.0)"
+          # Fixed asset name ("Spacey.zip") so the release/latest/download URL is stable
+          # across versions. ditto preserves the bundle (symlinks/resource forks) exactly.
+          /usr/bin/ditto -c -k --keepParent "$APP_PATH" "${APP_NAME}.zip"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # Codesign with Developer ID + hardened runtime + the existing entitlements.
-      # --options runtime enables the hardened runtime (required for notarization);
-      # --timestamp adds a secure timestamp (also required). Sign deep so any
-      # nested helpers/frameworks are covered.
-      - name: Codesign app
-        run: |
-          set -euo pipefail
-          codesign --force --deep --timestamp \
-            --options runtime \
-            --entitlements "Sources/${APP_NAME}/${APP_NAME}.entitlements" \
-            --sign "$SIGN_IDENTITY" \
-            "$APP_PATH"
-          # Verify strictly the way Gatekeeper will.
-          codesign --verify --strict --verbose=2 "$APP_PATH"
-
-      # ------------------------------------------------------------------
-      # Notarize the app. We zip it (notarytool wants an archive), submit with
-      # an App Store Connect API key, and --wait for the result. On success we
-      # staple the ticket so the app is verifiable offline.
-      # ------------------------------------------------------------------
-      - name: Notarize app
-        env:
-          AC_API_KEY_ID: ${{ secrets.AC_API_KEY_ID }}
-          AC_API_ISSUER_ID: ${{ secrets.AC_API_ISSUER_ID }}
-          AC_API_KEY_BASE64: ${{ secrets.AC_API_KEY_BASE64 }}
-        run: |
-          set -euo pipefail
-
-          # Decode the .p8 App Store Connect API key (never echoed).
-          API_KEY_PATH="$RUNNER_TEMP/AuthKey_${AC_API_KEY_ID}.p8"
-          echo -n "$AC_API_KEY_BASE64" | base64 --decode -o "$API_KEY_PATH"
-
-          # notarytool requires an archive; ditto preserves the bundle exactly.
-          NOTARIZE_ZIP="$RUNNER_TEMP/${APP_NAME}-app.zip"
-          /usr/bin/ditto -c -k --keepParent "$APP_PATH" "$NOTARIZE_ZIP"
-
-          # Submit and block until Apple finishes; non-zero exit on rejection.
-          xcrun notarytool submit "$NOTARIZE_ZIP" \
-            --key "$API_KEY_PATH" \
-            --key-id "$AC_API_KEY_ID" \
-            --issuer "$AC_API_ISSUER_ID" \
-            --wait
-
-          # Staple the notarization ticket into the app bundle.
-          xcrun stapler staple "$APP_PATH"
-          xcrun stapler validate "$APP_PATH"
-
-      # Package the signed+stapled app into Spacey-<version>.dmg.
-      - name: Build DMG
-        id: dmg
-        run: |
-          set -euo pipefail
-          chmod +x scripts/make-dmg.sh
-          # The script reads APP_PATH (or its first arg), writes to OUT_DIR, and
-          # appends `dmg=` / `version=` to $GITHUB_OUTPUT for the steps below.
-          OUT_DIR="$PWD/dist" scripts/make-dmg.sh "$APP_PATH"
-
-      # Sign the DMG itself, then notarize + staple it. A stapled DMG passes
-      # Gatekeeper on first download with no network round-trip.
-      - name: Codesign, notarize & staple DMG
-        env:
-          AC_API_KEY_ID: ${{ secrets.AC_API_KEY_ID }}
-          AC_API_ISSUER_ID: ${{ secrets.AC_API_ISSUER_ID }}
-          AC_API_KEY_BASE64: ${{ secrets.AC_API_KEY_BASE64 }}
-        run: |
-          set -euo pipefail
-          DMG_PATH="${{ steps.dmg.outputs.dmg }}"
-
-          # Sign the disk image with the same Developer ID identity.
-          codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG_PATH"
-
-          # Reuse the decoded API key path written during app notarization.
-          API_KEY_PATH="$RUNNER_TEMP/AuthKey_${AC_API_KEY_ID}.p8"
-          xcrun notarytool submit "$DMG_PATH" \
-            --key "$API_KEY_PATH" \
-            --key-id "$AC_API_KEY_ID" \
-            --issuer "$AC_API_ISSUER_ID" \
-            --wait
-
-          xcrun stapler staple "$DMG_PATH"
-          xcrun stapler validate "$DMG_PATH"
-
-      # Publish the GitHub Release for this tag and attach the DMG. This is what
-      # the in-app UpdateChecker polls: it reads the "latest release" tag and
-      # downloads the first .dmg/.zip/.pkg asset.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -231,16 +79,5 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
-          files: ${{ steps.dmg.outputs.dmg }}
-        # GITHUB_TOKEN is provided automatically; permissions: contents:write above.
-
-      # Always clean up the temporary keychain, even if an earlier step failed,
-      # so signing material never lingers on the runner.
-      - name: Clean up keychain
-        if: always()
-        run: |
-          set +e
-          if [ -n "${KEYCHAIN_PATH:-}" ] && [ -f "$KEYCHAIN_PATH" ]; then
-            security delete-keychain "$KEYCHAIN_PATH"
-          fi
-          rm -f "$RUNNER_TEMP"/*.p12 "$RUNNER_TEMP"/*.p8 || true
+          files: ${{ env.APP_NAME }}.zip
+        # GITHUB_TOKEN is provided automatically; permissions: contents: write above.

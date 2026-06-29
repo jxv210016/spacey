@@ -61,11 +61,16 @@ overlay**, all without ever disabling System Integrity Protection (SIP).
   pane. Requires the Accessibility permission (see [Permissions](#permissions)).
 
 ### Switching & hotkeys
-- **Click‑to‑switch** from the menu: Spacey steps to the target Space by driving the
-  built‑in Control + ← / → Mission Control shortcuts through System Events — the
-  reliable, no‑SIP path.
-- **Global hotkeys** and a **Quick Switcher** command palette (type‑to‑filter by
-  name, numeric jump, ↑/↓ + Return) let you jump to a Space by name from anywhere.
+- **Jump straight to a desktop with ⌃1–9** (the default — press ⌃3 to land on
+  desktop 3). Every binding is configurable in **Settings ▸ Shortcuts**.
+- **Quick Switcher** command palette (default **⌥Space**): type to filter Spaces by
+  name, **↑/↓ + Return**, or press **1–9** to jump to a result.
+- **Click‑to‑switch** from the menu‑bar dropdown, plus optional **previous‑Space**
+  toggle and next/previous cycling hotkeys.
+- All no‑SIP and **reliable**: Spacey drives the always‑on ⌃← / ⌃→ "move a space"
+  shortcuts through System Events, stepping **one Space at a time and confirming each
+  step landed** (via a live read) — so jumps hit the right desktop every time, with no
+  overshoot and no dropped keystrokes.
 
 ### Quality of life
 - **Add Desktop** straight from the menu (drives Mission Control's own “+”, no SIP).
@@ -104,14 +109,21 @@ the macOS SDK alone. That keeps the app small, auditable, and easy to build.
 
 ## Install
 
-### Download (recommended, when available)
-Grab the latest notarized build from the
-[**Releases page**](https://github.com/jxv210016/spacey/releases), move `Spacey.app`
-to `/Applications`, and launch it. Spacey checks for newer releases on its own and
-points you to the download when one appears.
+### Download (terminal)
+Grab the latest prebuilt build and drop it into `/Applications`:
 
-> Releases are still being prepared. Until a signed build is posted, build from
-> source below.
+```bash
+curl -L -o Spacey.zip https://github.com/jxv210016/spacey/releases/latest/download/Spacey.zip
+unzip -o Spacey.zip -d /Applications
+xattr -dr com.apple.quarantine /Applications/Spacey.app   # clear the download quarantine
+open /Applications/Spacey.app
+```
+
+The `xattr` step is required because Spacey ships **unsigned** (no paid Apple Developer
+account), so Gatekeeper would otherwise refuse to open a downloaded copy. Spacey then
+checks for newer releases on its own and points you to the download when one appears.
+
+> No release posted yet? Use **Build from source** below — same result.
 
 ### Build from source
 See the next section.
