@@ -1,15 +1,19 @@
 import SwiftUI
 
-/// First-run onboarding: a friendly, centered flow that welcomes the user, explains
-/// what Spacey does, walks through granting Accessibility (with live status), and
-/// finishes by marking onboarding complete.
+/// First-run onboarding: a friendly, centered flow that welcomes the user, shows what
+/// Spacey does (naming + switching demos), points out the optional speed settings, walks
+/// through granting Accessibility (with live status), and finishes by marking onboarding
+/// complete.
 struct OnboardingView: View {
     @ObservedObject var state: OnboardingState
     @ObservedObject var accessibility: AccessibilityMonitor
     let onFinish: () -> Void
 
-    private enum Step {
+    private enum Step: CaseIterable {
         case welcome
+        case naming
+        case switching
+        case speed
         case permission
     }
 
@@ -26,16 +30,17 @@ struct OnboardingView: View {
                 .padding(.horizontal, 36)
             footer
         }
-        .frame(width: 460, height: 560)
+        .frame(width: 460, height: 600)
     }
 
     @ViewBuilder
     private var content: some View {
         switch step {
-        case .welcome:
-            welcomeStep
-        case .permission:
-            permissionStep
+        case .welcome: welcomeStep
+        case .naming: NamingStepView()
+        case .switching: SwitchStepView()
+        case .speed: SpeedStepView()
+        case .permission: permissionStep
         }
     }
 
@@ -64,7 +69,7 @@ struct OnboardingView: View {
                 feature(
                     "arrow.left.arrow.right",
                     "Switch by name",
-                    "Jump to any Space from the menu-bar list."
+                    "Jump to any Space from the menu-bar list or a hotkey."
                 )
                 feature(
                     "rectangle.3.group",
@@ -111,6 +116,7 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
             }
             statusRow
+            automationNote
             Spacer(minLength: 12)
         }
     }
@@ -133,6 +139,20 @@ struct OnboardingView: View {
         .padding(.top, 8)
     }
 
+    private var automationNote: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "info.circle")
+                .foregroundStyle(.secondary)
+            Text(
+                "Switching also asks to control “System Events” (Automation). "
+                    + "macOS prompts for this automatically the first time you switch — just click Allow."
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 4)
+    }
+
     // MARK: - Footer
 
     private var footer: some View {
@@ -148,8 +168,7 @@ struct OnboardingView: View {
 
     private var pageDots: some View {
         HStack(spacing: 7) {
-            dot(active: step == .welcome)
-            dot(active: step == .permission)
+            ForEach(Step.allCases, id: \.self) { dot(active: step == $0) }
         }
     }
 
@@ -161,20 +180,36 @@ struct OnboardingView: View {
 
     @ViewBuilder
     private var footerButtons: some View {
-        switch step {
-        case .welcome:
-            Button("Continue") { step = .permission }
-                .buttonStyle(.borderedProminent)
+        if step != Step.allCases.first {
+            Button("Back") { goBack() }
                 .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
-        case .permission:
-            Button("Back") { step = .welcome }
-                .controlSize(.large)
-            Button("Get Started") { finish() }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
         }
+        Button(isLastStep ? "Get Started" : "Continue") { advance() }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+    }
+
+    // MARK: - Navigation
+
+    private var isLastStep: Bool {
+        step == Step.allCases.last
+    }
+
+    private func advance() {
+        guard let index = Step.allCases.firstIndex(of: step) else { return }
+        let next = Step.allCases.index(after: index)
+        if next < Step.allCases.endIndex {
+            step = Step.allCases[next]
+        } else {
+            finish()
+        }
+    }
+
+    private func goBack() {
+        guard let index = Step.allCases.firstIndex(of: step),
+              index > Step.allCases.startIndex else { return }
+        step = Step.allCases[Step.allCases.index(before: index)]
     }
 
     private func finish() {

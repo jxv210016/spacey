@@ -31,7 +31,7 @@ final class OnboardingPresenter: NSObject, NSWindowDelegate {
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.delegate = self
-        window.setContentSize(NSSize(width: 460, height: 560))
+        window.setContentSize(NSSize(width: 460, height: 600))
         window.center()
         window.makeKeyAndOrderFront(nil)
 
