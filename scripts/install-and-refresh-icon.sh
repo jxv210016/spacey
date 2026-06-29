@@ -103,22 +103,55 @@ if [[ -d "$DEST" ]]; then
 fi
 run_priv /bin/cp -R "$BUILT_APP" "$DEST"
 
-# --- 4. Give the installed copy a sealed ad-hoc signature --------------------
-# The DerivedData build is "linker-signed" (Sealed Resources=none). Re-signing
-# with `codesign -f -s -` seals the bundle resources and binds the Info.plist,
-# giving IconServices a stable thing to read the icon from.
-echo "==> Re-signing /Applications copy with a sealed ad-hoc signature…"
+# --- 4. Sign the installed copy with a STABLE identity -----------------------
+# WHY: a stable code signature (a real certificate → fixed Team ID and a fixed
+# "designated requirement") is what lets macOS/TCC keep the Accessibility grant
+# across reinstalls. An ad-hoc "linker-signed" build has no Team ID, so every
+# rebuild looks like a *different* app and the permission is dropped — forcing a
+# re-grant each time. Re-signing also seals the bundle resources and binds the
+# Info.plist, which fixes the icon caching described above.
+#
+# Identity selection (override with SIGN_IDENTITY="<name or hash>"):
+#   1. Developer ID Application  — stable AND suitable for distributing to other
+#      people (pairs with notarization). NOTE: embeds your name/org (it's public
+#      in every signed app).
+#   2. "Spacey Local Signing"    — a self-signed code-signing cert you create
+#      locally (see scripts/create-local-signing-cert.sh). Stable identity on
+#      THIS Mac (so the Accessibility grant persists) but carries NO personal
+#      name. Not valid for distribution to others. Found via `find-identity`
+#      WITHOUT `-v` because a self-signed cert is "not trusted" and `-v` hides it.
+#   3. ad-hoc ("-")              — last resort; has no name but is unstable, so
+#      Accessibility must be re-granted on every reinstall.
+#
+# We intentionally do NOT auto-select an "Apple Development" cert: it would
+# silently embed the builder's real name. Use SIGN_IDENTITY=... to force one.
 ENTITLEMENTS="$REPO_ROOT/Sources/${APP_NAME}/${APP_NAME}.entitlements"
-if [[ -f "$ENTITLEMENTS" ]]; then
-  run_priv /usr/bin/codesign --force --deep --sign - \
-    --entitlements "$ENTITLEMENTS" \
-    --options runtime "$DEST" || \
-  run_priv /usr/bin/codesign --force --deep --sign - "$DEST"
-else
-  run_priv /usr/bin/codesign --force --deep --sign - "$DEST"
+
+# `|| true` so a no-match grep doesn't trip `set -e`/`pipefail` and abort the script.
+if [[ -z "${SIGN_IDENTITY:-}" ]]; then
+  SIGN_IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
+    | grep -oE '"Developer ID Application: [^"]+"' | head -1 | tr -d '"' || true)"
+  if [[ -z "$SIGN_IDENTITY" ]]; then
+    SIGN_IDENTITY="$(security find-identity -p codesigning 2>/dev/null \
+      | grep -oE '"Spacey Local Signing"' | head -1 | tr -d '"' || true)"
+  fi
 fi
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"   # default to ad-hoc if nothing was found
+
+# NOTE: sign as the current user (not sudo) so codesign can read the login
+# keychain's private key. This relies on /Applications being user-writable
+# (true on a normal admin account); run_priv falls back to sudo only for the
+# copy/rm steps, never for codesign.
+echo "==> Re-signing /Applications copy as: ${SIGN_IDENTITY}"
+SIGN_ARGS=(--force --deep)
+if [[ "$SIGN_IDENTITY" != "-" ]]; then
+  SIGN_ARGS+=(--options runtime)   # hardened runtime, required for notarization
+fi
+[[ -f "$ENTITLEMENTS" ]] && SIGN_ARGS+=(--entitlements "$ENTITLEMENTS")
+/usr/bin/codesign "${SIGN_ARGS[@]}" --sign "$SIGN_IDENTITY" "$DEST"
+
 echo "==> Verifying signature…"
-codesign -dv --verbose=4 "$DEST" 2>&1 | grep -E 'Signature|Sealed Resources' || true
+codesign -dv --verbose=4 "$DEST" 2>&1 | grep -E 'Authority|TeamIdentifier|Signature|Sealed Resources' || true
 
 # --- 5. Flush icon caches & re-register with LaunchServices ------------------
 echo "==> Flushing user IconServices cache…"
