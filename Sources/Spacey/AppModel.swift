@@ -84,42 +84,51 @@ final class AppModel: ObservableObject {
     }
 
     /// Jump straight to the Nth (1-based) Space on the active display. A no-op if that
-    /// desktop doesn't exist or is already current.
+    /// desktop doesn't exist.
     private func jumpToDesktop(_ number: Int) {
-        guard let current = spaces.currentSpace,
-              let display = spaces.displays.first(where: { $0.displayID == current.displayID }),
-              number >= 1, number <= display.spaces.count,
-              number != current.indexOnDisplay
+        let snapshot = SpacesReader.snapshot()
+        guard let display = activeDisplay(in: snapshot),
+              let current = display.spaces.first(where: { $0.isCurrent }),
+              number >= 1, number <= display.spaces.count
         else { return }
-        SpaceSwitcher.move(toIndex: number, fromIndex: current.indexOnDisplay, displayCount: spaces.displays.count)
+        SpaceSwitcher.move(toIndex: number, fromIndex: current.indexOnDisplay, displayCount: snapshot.count)
     }
 
     /// Step one Space left/right on the active display (no wrap).
     private func cycle(delta: Int) {
-        guard let current = spaces.currentSpace,
-              let display = spaces.displays.first(where: { $0.displayID == current.displayID }),
+        let snapshot = SpacesReader.snapshot()
+        guard let display = activeDisplay(in: snapshot),
+              let current = display.spaces.first(where: { $0.isCurrent }),
               let target = SpaceNavigation.cycleTarget(
                   currentIndex: current.indexOnDisplay,
                   count: display.spaces.count,
                   delta: delta
               )
         else { return }
-        SpaceSwitcher.move(toIndex: target, fromIndex: current.indexOnDisplay, displayCount: spaces.displays.count)
+        SpaceSwitcher.move(toIndex: target, fromIndex: current.indexOnDisplay, displayCount: snapshot.count)
     }
 
     /// Toggle back to the previously active Space, re-resolving its current index.
     private func jumpToPreviousSpace() {
+        let snapshot = SpacesReader.snapshot()
         guard let identity = previousSpace.previousIdentity,
-              let target = spaces.allSpaces.first(where: { $0.identity == identity }),
+              let target = snapshot.flatMap({ $0.spaces }).first(where: { $0.identity == identity }),
               !target.isCurrent,
-              let display = spaces.displays.first(where: { $0.displayID == target.displayID }),
+              let display = snapshot.first(where: { $0.displayID == target.displayID }),
               let current = display.spaces.first(where: { $0.isCurrent })
         else { return }
         SpaceSwitcher.move(
             toIndex: target.indexOnDisplay,
             fromIndex: current.indexOnDisplay,
-            displayCount: spaces.displays.count
+            displayCount: snapshot.count
         )
+    }
+
+    /// The active display from a fresh SkyLight snapshot. Reading live here (rather than
+    /// from the `@Published` store, which lags a beat behind a switch) keeps back-to-back
+    /// jumps from computing a relative step off a stale "current" index.
+    private func activeDisplay(in snapshot: [DisplaySpaces]) -> DisplaySpaces? {
+        snapshot.first { $0.displayID == spaces.activeDisplayID } ?? snapshot.first
     }
 
     /// Show onboarding on first launch only.
