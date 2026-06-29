@@ -31,7 +31,9 @@ struct SpaceRowView: View {
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
         }
-        .help(space.isCurrent ? "Current Space · double-click to rename" : "Switch to this Space · double-click to rename")
+        .help(space.isCurrent
+            ? "Current Space · double-click to rename"
+            : "Switch to this Space · double-click to rename")
         .onAppear { syncDraft() }
         .onChange(of: name?.label) { _, _ in if !isEditing { syncDraft() } }
     }
