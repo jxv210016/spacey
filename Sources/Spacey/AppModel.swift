@@ -78,7 +78,20 @@ final class AppModel: ObservableObject {
         case .previousSpace: jumpToPreviousSpace()
         case .cycleNext: cycle(delta: 1)
         case .cyclePrevious: cycle(delta: -1)
+        default:
+            if let number = action.targetDesktopNumber { jumpToDesktop(number) }
         }
+    }
+
+    /// Jump straight to the Nth (1-based) Space on the active display. A no-op if that
+    /// desktop doesn't exist or is already current.
+    private func jumpToDesktop(_ number: Int) {
+        guard let current = spaces.currentSpace,
+              let display = spaces.displays.first(where: { $0.displayID == current.displayID }),
+              number >= 1, number <= display.spaces.count,
+              number != current.indexOnDisplay
+        else { return }
+        SpaceSwitcher.navigate(fromIndex: current.indexOnDisplay, toIndex: number)
     }
 
     /// Step one Space left/right on the active display (no wrap).
