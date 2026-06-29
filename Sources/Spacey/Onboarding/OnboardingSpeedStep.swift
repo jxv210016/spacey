@@ -7,8 +7,6 @@ import SwiftUI
 enum OnboardingLinks {
     /// Keyboard settings pane (Keyboard Shortcuts ▸ Mission Control lives here).
     static let keyboardSettings = "x-apple.systempreferences:com.apple.Keyboard-Settings.extension"
-    /// Accessibility settings pane (Display ▸ Reduce Motion lives here).
-    static let accessibilitySettings = "x-apple.systempreferences:com.apple.Accessibility-Settings.extension"
 
     static func open(_ string: String) {
         guard let url = URL(string: string) else { return }
@@ -16,41 +14,31 @@ enum OnboardingLinks {
     }
 
     static func openKeyboardSettings() { open(keyboardSettings) }
-
-    static func openAccessibilitySettings() { open(accessibilitySettings) }
 }
 
-/// "Make it instant" step: two optional macOS settings that make switching feel
-/// immediate. Spacey auto-detects and uses them; this is guidance, not a requirement.
+/// Optional speed-up: switching already works out of the box, but turning on macOS's
+/// "Switch to Desktop" shortcuts lets Spacey jump in a single motion. Entirely optional —
+/// framed that way so onboarding never feels like a chore.
 struct SpeedStepView: View {
     var body: some View {
         VStack(spacing: 18) {
             Spacer(minLength: 12)
             OnboardingHeader(
                 symbol: "bolt.fill",
-                title: "Make it instant",
-                subtitle: "Two optional macOS settings make every jump feel immediate. "
-                    + "Both are off by default — Spacey uses them automatically once they're on."
+                title: "Optional: instant jumps",
+                subtitle: "Switching already works — this just makes a far jump one quick "
+                    + "motion instead of stepping across. Skip it if you like."
             )
-            VStack(spacing: 12) {
-                SetupCard(
-                    symbol: "command.square",
-                    title: "“Switch to Desktop 1–9” shortcuts",
-                    detail: "Enable these for the fastest direct jumps. "
-                        + "Without them, Spacey steps left/right to reach a desktop.",
-                    path: "System Settings ▸ Keyboard ▸ Keyboard Shortcuts ▸ Mission Control",
-                    buttonTitle: "Open Keyboard Settings…",
-                    action: OnboardingLinks.openKeyboardSettings
-                )
-                SetupCard(
-                    symbol: "figure.walk.motion",
-                    title: "Reduce Motion",
-                    detail: "Turns the macOS Space-switch slide into a near-instant crossfade.",
-                    path: "System Settings ▸ Accessibility ▸ Display",
-                    buttonTitle: "Open Accessibility…",
-                    action: OnboardingLinks.openAccessibilitySettings
-                )
-            }
+            SetupCard(
+                symbol: "command.square",
+                title: "Turn on “Switch to Desktop 1–9”",
+                detail: "In the panel that opens, pick Mission Control and check "
+                    + "“Switch to Desktop 1” through 9. Spacey then jumps straight there; "
+                    + "without it, it steps left/right (still works).",
+                path: "Keyboard ▸ Keyboard Shortcuts… ▸ Mission Control",
+                buttonTitle: "Open Keyboard Settings…",
+                action: OnboardingLinks.openKeyboardSettings
+            )
             Spacer(minLength: 12)
         }
     }
