@@ -61,7 +61,10 @@ struct SpaceRowView: View {
 
     @ViewBuilder
     private var trailing: some View {
-        if isHovering || isEditing {
+        // Keep the controls mounted while the icon picker is open: its popover is
+        // anchored to the icon button, so dropping the button when the mouse leaves
+        // the row (to reach the popover) would dismiss the picker mid-selection.
+        if isHovering || isEditing || showIconPicker {
             controls.transition(.opacity)
         }
     }
