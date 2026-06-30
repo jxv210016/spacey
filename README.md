@@ -47,7 +47,9 @@ overlay**, all without ever disabling System Integrity Protection (SIP).
 - Edit inline from the menu‑bar dropdown — no separate editor to open.
 
 ### Menu‑bar indicator
-- A persistent menu‑bar item that always shows your **current Space**'s name/icon.
+- A persistent menu‑bar item that always shows your **current Space**'s name/number,
+  adding the **icon only when it's meaningful** (one you picked or a name‑based
+  suggestion) — never a generic placeholder.
 - **Multi‑display aware** — the dropdown groups Spaces per display and marks the
   active one.
 - The dropdown lists every Space; **click any row to switch to it**.
@@ -56,7 +58,8 @@ overlay**, all without ever disabling System Integrity Protection (SIP).
 - Your custom names are drawn **on top of the real Mission Control Spaces Bar**,
   using a no‑SIP Accessibility overlay.
 - Works whether the Spaces Bar is **collapsed** (the thin strip at the top) or
-  **expanded** (hover to reveal full thumbnails) — labels track the live positions.
+  **expanded** (hover to reveal full thumbnails) — labels track the live positions,
+  staying correct even when you reorder desktops inside Mission Control.
 - On by default; toggle it any time from the menu or the Mission Control settings
   pane. Requires the Accessibility permission (see [Permissions](#permissions)).
 
