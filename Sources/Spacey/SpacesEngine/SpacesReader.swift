@@ -25,6 +25,10 @@ enum SpacesReader {
             let rawSpaces = display["Spaces"] as? [[String: Any]] ?? []
 
             var spaces: [Space] = []
+            // Count empty-UUID Spaces as we go so a (pathological) second one on the
+            // same display gets a distinct deterministic key instead of colliding with
+            // the primary Space's name record. See `Space.identity`.
+            var emptyUUIDOrdinal = 0
             for (offset, raw) in rawSpaces.enumerated() {
                 let uuid = raw["uuid"] as? String ?? ""
                 let managedID = unsigned(raw["ManagedSpaceID"])
@@ -33,6 +37,13 @@ enum SpacesReader {
                 // -1 sentinel means "unknown type". Note: never coerce a missing
                 // value through UInt64.max — `Int(UInt64.max)` traps.
                 let type = integer(raw["type"]) ?? -1
+                let primaryOrdinal: Int
+                if uuid.isEmpty {
+                    primaryOrdinal = emptyUUIDOrdinal
+                    emptyUUIDOrdinal += 1
+                } else {
+                    primaryOrdinal = 0
+                }
                 globalIndex += 1
                 spaces.append(
                     Space(
@@ -42,7 +53,8 @@ enum SpacesReader {
                         indexOnDisplay: offset + 1,
                         globalIndex: globalIndex,
                         isCurrent: currentID != nil && managedID == currentID,
-                        type: type
+                        type: type,
+                        primaryOrdinal: primaryOrdinal
                     )
                 )
             }
