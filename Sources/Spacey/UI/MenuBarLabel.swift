@@ -14,9 +14,13 @@ struct MenuBarLabel: View {
         let style = appearance.menuBarStyle
         let glyph = meaningfulGlyph(for: current, record: record)
 
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             if style.showsIcon, let glyph {
                 Image(systemName: glyph)
+                    // Scale relative to the system menu-bar font (not a fixed point size)
+                    // so it stays balanced against the text across menu-bar heights, and
+                    // trims the glyph's heavy side-bearing for a tighter icon↔text gap.
+                    .imageScale(.small)
             }
             // Keep something visible: show the name when the style asks for it, or as a
             // fallback when there's no icon (so an icon-only menu bar never collapses to

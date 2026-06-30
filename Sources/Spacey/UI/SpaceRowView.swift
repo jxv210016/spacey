@@ -195,12 +195,15 @@ private struct SpaceMark: View {
             }
             if let symbol, !symbol.isEmpty {
                 Image(systemName: symbol)
-                    .font(.system(size: 8, weight: .bold))
+                    .font(.system(size: 7, weight: .semibold))
                     .foregroundStyle(color == nil ? Color.secondary : .white)
-                    // SF Symbol image frames reserve descender space at the bottom, so a
-                    // geometrically-centered glyph reads as too high. Nudge down ~1/16 of the
-                    // point size to optically center it in the circle.
-                    .offset(y: 0.5)
+                    // Bound every glyph to the dot's box so symbols of different intrinsic
+                    // widths center identically and never bleed past the 14pt circle.
+                    .frame(width: 14, height: 14)
+                    // SF Symbol frames reserve descender space at the bottom, so a
+                    // geometrically-centered glyph reads as slightly high. Nudge down a
+                    // hair (~1/16 of the point size) to optically center it.
+                    .offset(y: 0.4)
             }
         }
         .frame(width: 14, height: 14)
