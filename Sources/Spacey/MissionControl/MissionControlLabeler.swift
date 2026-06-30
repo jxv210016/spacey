@@ -91,7 +91,13 @@ final class MissionControlLabeler: ObservableObject {
     private func presentLabels() {
         guard isEnabled, let screen = NSScreen.main else { return }
         let thumbnails = SpacesBarReader.read()
-        let spaces = store.displays.first?.spaces ?? store.allSpaces
+        // Read live order straight from SkyLight rather than the cached store: while
+        // Mission Control is open the user may drag-reorder Spaces, and the cached
+        // snapshot only updates on a debounced change event (or not at all if none
+        // fires). The overlay already polls at 10 Hz, so a fresh read here keeps the
+        // positional thumbnail→Space mapping in lockstep with the bar the user sees.
+        let snapshot = SpacesReader.snapshot()
+        let spaces = snapshot.first?.spaces ?? snapshot.allSpaces
         let positioned = positionedThumbnails(thumbnails, screen: screen)
         let labels = OverlayMapping.labels(
             thumbnails: positioned,
